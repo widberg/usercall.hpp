@@ -1,7 +1,3 @@
-# asm.hpp
-C++ Macros for custom calling conventions on functions
-
-```cpp
 #include <cstdio>
 
 #include "asm.hpp"
@@ -22,4 +18,3 @@ int main()
 	printf("hey %d\n", a);
 	return a;
 }
-```
