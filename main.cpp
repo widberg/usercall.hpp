@@ -1,27 +1,25 @@
 #include <cstdio>
 #include "asm.hpp"
 
-FUNCTION(int, eax, example, (ARGUMENT(int, arg, eax), ARGUMENT(int, arg2, ebx), ARGUMENT(int, arg3, ecx), ARGUMENT(int, arg4, edx), ARGUMENT_STACK(int, arg5, 8)),
-{
-	printf("arg = %d, arg5 = %d\n", arg, arg5);
-	arg = arg + arg5;
+FN(int, eax, example, (ARG(int, arg, eax), ARG(int, arg2, ebx), ARG(int, arg3, ecx), ARG_STACK(int, arg4, 8)), (
+	printf("arg = %d, arg4 = %d\n", arg, arg4);
+	arg = arg + arg4;
 	printf("hey %d\n", arg);
 	RETURN(arg);
-})
+))
 
-FUNCTION(example2, (),
-{
+FN(example2, (), (
 	printf("void function\n");
 	RETURN();
-})
+))
 
 int main()
 {
-	int a = 1;
-	int b = 2;
-	printf("hey %d\n", a);
-	CALL_example(a, VALUE(a, eax), VALUE(0, ebx), VALUE(0, ecx), VALUE(0, edx), VALUE_STACK(b));
-	printf("hey %d\n", a);
-	CALL_example2();
-	return a;
+	int my_a = 1;
+	int my_b = 3;
+	printf("a = %d, b = %d\n", my_a, my_b);
+	my_a = example_trampoline(my_a, 0, 0, my_b);
+	printf("a = %d, b = %d\n", my_a, my_b);
+	example2_trampoline();
+	return my_a;
 }

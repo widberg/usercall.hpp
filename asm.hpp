@@ -1,91 +1,101 @@
 #ifndef ASM_HPP
 #define ASM_HPP
 
+#define FN FUNCTION
+#define ARG ARGUMENT
+#define ARG_STACK ARGUMENT_STACK
+#define VAL VALUE
+#define VAL_STACK VALUE_STACK
+
 #define EXPAND(x) x
 #define EXPAND_VA_ARGS(...) __VA_ARGS__
 
 #define ARGUMENT(argument_type, argument_name, argument_expression) \
-argument_type, argument_name, (__asm { mov argument_name, argument_expression };)
+(argument_type, argument_name, (__asm { mov argument_name, argument_expression };), (__asm { mov argument_expression, argument_name };))
 
 #define ARGUMENT_STACK(argument_type, argument_name, argument_offset) \
-argument_type, argument_name, (__asm { push EAX }; __asm { mov EAX, [EBP + argument_offset] }; __asm { mov argument_name, EAX }; __asm { pop EAX };)
+(argument_type, argument_name, (__asm { push EAX }; __asm { mov EAX, [EBP + argument_offset] }; __asm { mov argument_name, EAX }; __asm { pop EAX };), (__asm { push argument_name };))
 
 #define GET_ARG_COUNT(...)  INTERNAL_EXPAND_ARGS_PRIVATE(INTERNAL_ARGS_AUGMENTER(__VA_ARGS__))
 #define INTERNAL_ARGS_AUGMENTER(...) unused, __VA_ARGS__
-#define INTERNAL_EXPAND_ARGS_PRIVATE(...) EXPAND(INTERNAL_GET_ARG_COUNT_PRIVATE(__VA_ARGS__, 16, 16, 16, 15, 15, 15, 14, 14, 14, 13, 13, 13, 12, 12, 12, 11, 11, 11, 10, 10, 10, 9, 9, 9, 8, 8, 8, 7, 7, 7, 6, 6, 6, 5, 5, 5, 4, 4, 4, 3, 3, 3, 2, 2, 2, 1, 1, 1, 0))
-#define INTERNAL_GET_ARG_COUNT_PRIVATE(_1_, _2_, _3_, _4_, _5_, _6_, _7_, _8_, _9_, _10_, _11_, _12_, _13_, _14_, _15_, _16_, _17_, _18_, _19_, _20_, _21_, _22_, _23_, _24_, _25_, _26_, _27_, _28_, _29_, _30_, _31_, _32_, _33_, _34_, _35_, _36, _37, _38, _39, _40, _41, _42, _43, _44, _45, _46, _47, _48, _49, count, ...) count
+#define INTERNAL_EXPAND_ARGS_PRIVATE(...) EXPAND(INTERNAL_GET_ARG_COUNT_PRIVATE(__VA_ARGS__, 69, 68, 67, 66, 65, 64, 63, 62, 61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51, 50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0))
+#define INTERNAL_GET_ARG_COUNT_PRIVATE(_1_, _2_, _3_, _4_, _5_, _6_, _7_, _8_, _9_, _10_, _11_, _12_, _13_, _14_, _15_, _16_, _17_, _18_, _19_, _20_, _21_, _22_, _23_, _24_, _25_, _26_, _27_, _28_, _29_, _30_, _31_, _32_, _33_, _34_, _35_, _36, _37, _38, _39, _40, _41, _42, _43, _44, _45, _46, _47, _48, _49, _50, _51, _52, _53, _54, _55, _56, _57, _58, _59, _60, _61, _62, _63, _64, _65, _66, _67, _68, _69, _70, count, ...) count
+
+#define ARGUMENT_LIST_1_INTERNAL(argument_type, argument_name, ...) argument_type argument_name
 
 #define ARGUMENT_LIST_0()
-#define ARGUMENT_LIST_1(argument_type, argument_name, argument_expression) \
-argument_type argument_name
-#define ARGUMENT_LIST_2(argument_type, argument_name, argument_expression, ...) \
-ARGUMENT_LIST_1(argument_type, argument_name, argument_expression), EXPAND(ARGUMENT_LIST_1(__VA_ARGS__))
-#define ARGUMENT_LIST_3(argument_type, argument_name, argument_expression, ...) \
-ARGUMENT_LIST_1(argument_type, argument_name, argument_expression), EXPAND(ARGUMENT_LIST_2(__VA_ARGS__))
-#define ARGUMENT_LIST_4(argument_type, argument_name, argument_expression, ...) \
-ARGUMENT_LIST_1(argument_type, argument_name, argument_expression), EXPAND(ARGUMENT_LIST_3(__VA_ARGS__))
-#define ARGUMENT_LIST_5(argument_type, argument_name, argument_expression, ...) \
-ARGUMENT_LIST_1(argument_type, argument_name, argument_expression), EXPAND(ARGUMENT_LIST_4(__VA_ARGS__))
-#define ARGUMENT_LIST_6(argument_type, argument_name, argument_expression, ...) \
-ARGUMENT_LIST_1(argument_type, argument_name, argument_expression), EXPAND(ARGUMENT_LIST_5(__VA_ARGS__))
-#define ARGUMENT_LIST_7(argument_type, argument_name, argument_expression, ...) \
-ARGUMENT_LIST_1(argument_type, argument_name, argument_expression), EXPAND(ARGUMENT_LIST_6(__VA_ARGS__))
-#define ARGUMENT_LIST_8(argument_type, argument_name, argument_expression, ...) \
-ARGUMENT_LIST_1(argument_type, argument_name, argument_expression), EXPAND(ARGUMENT_LIST_7(__VA_ARGS__))
-#define ARGUMENT_LIST_9(argument_type, argument_name, argument_expression, ...) \
-ARGUMENT_LIST_1(argument_type, argument_name, argument_expression), EXPAND(ARGUMENT_LIST_8(__VA_ARGS__))
-#define ARGUMENT_LIST_10(argument_type, argument_name, argument_expression, ...) \
-ARGUMENT_LIST_1(argument_type, argument_name, argument_expression), EXPAND(ARGUMENT_LIST_9(__VA_ARGS__))
-#define ARGUMENT_LIST_11(argument_type, argument_name, argument_expression, ...) \
-ARGUMENT_LIST_1(argument_type, argument_name, argument_expression), EXPAND(ARGUMENT_LIST_10(__VA_ARGS__))
-#define ARGUMENT_LIST_12(argument_type, argument_name, argument_expression, ...) \
-ARGUMENT_LIST_1(argument_type, argument_name, argument_expression), EXPAND(ARGUMENT_LIST_11(__VA_ARGS__))
-#define ARGUMENT_LIST_13(argument_type, argument_name, argument_expression, ...) \
-ARGUMENT_LIST_1(argument_type, argument_name, argument_expression), EXPAND(ARGUMENT_LIST_12(__VA_ARGS__))
-#define ARGUMENT_LIST_14(argument_type, argument_name, argument_expression, ...) \
-ARGUMENT_LIST_1(argument_type, argument_name, argument_expression), EXPAND(ARGUMENT_LIST_13(__VA_ARGS__))
-#define ARGUMENT_LIST_15(argument_type, argument_name, argument_expression, ...) \
-ARGUMENT_LIST_1(argument_type, argument_name, argument_expression), EXPAND(ARGUMENT_LIST_14(__VA_ARGS__))
-#define ARGUMENT_LIST_16(argument_type, argument_name, argument_expression, ...) \
-ARGUMENT_LIST_1(argument_type, argument_name, argument_expression), EXPAND(ARGUMENT_LIST_15(__VA_ARGS__))
+#define ARGUMENT_LIST_1(argument) \
+ARGUMENT_LIST_1_INTERNAL##argument
+#define ARGUMENT_LIST_2(argument, ...) \
+ARGUMENT_LIST_1(argument), EXPAND(ARGUMENT_LIST_1(__VA_ARGS__))
+#define ARGUMENT_LIST_3(argument, ...) \
+ARGUMENT_LIST_1(argument), EXPAND(ARGUMENT_LIST_2(__VA_ARGS__))
+#define ARGUMENT_LIST_4(argument, ...) \
+ARGUMENT_LIST_1(argument), EXPAND(ARGUMENT_LIST_3(__VA_ARGS__))
+#define ARGUMENT_LIST_5(argument, ...) \
+ARGUMENT_LIST_1(argument), EXPAND(ARGUMENT_LIST_4(__VA_ARGS__))
+#define ARGUMENT_LIST_6(argument, ...) \
+ARGUMENT_LIST_1(argument), EXPAND(ARGUMENT_LIST_5(__VA_ARGS__))
+#define ARGUMENT_LIST_7(argument, ...) \
+ARGUMENT_LIST_1(argument), EXPAND(ARGUMENT_LIST_6(__VA_ARGS__))
+#define ARGUMENT_LIST_8(argument, ...) \
+ARGUMENT_LIST_1(argument), EXPAND(ARGUMENT_LIST_7(__VA_ARGS__))
+#define ARGUMENT_LIST_9(argument, ...) \
+ARGUMENT_LIST_1(argument), EXPAND(ARGUMENT_LIST_8(__VA_ARGS__))
+#define ARGUMENT_LIST_10(argument, ...) \
+ARGUMENT_LIST_1(argument), EXPAND(ARGUMENT_LIST_9(__VA_ARGS__))
+#define ARGUMENT_LIST_11(argument, ...) \
+ARGUMENT_LIST_1(argument), EXPAND(ARGUMENT_LIST_10(__VA_ARGS__))
+#define ARGUMENT_LIST_12(argument, ...) \
+ARGUMENT_LIST_1(argument), EXPAND(ARGUMENT_LIST_11(__VA_ARGS__))
+#define ARGUMENT_LIST_13(argument, ...) \
+ARGUMENT_LIST_1(argument), EXPAND(ARGUMENT_LIST_12(__VA_ARGS__))
+#define ARGUMENT_LIST_14(argument, ...) \
+ARGUMENT_LIST_1(argument), EXPAND(ARGUMENT_LIST_13(__VA_ARGS__))
+#define ARGUMENT_LIST_15(argument, ...) \
+ARGUMENT_LIST_1(argument), EXPAND(ARGUMENT_LIST_14(__VA_ARGS__))
+#define ARGUMENT_LIST_16(argument, ...) \
+ARGUMENT_LIST_1(argument), EXPAND(ARGUMENT_LIST_15(__VA_ARGS__))
 
 #define ARGUMENT_LIST_INTERNAL(count, ...) EXPAND(ARGUMENT_LIST_##count(__VA_ARGS__))
 #define ARGUMENT_LIST_INTERNAL_OUTER(count, ...) ARGUMENT_LIST_INTERNAL(count, __VA_ARGS__)
 #define ARGUMENT_LIST(...) ARGUMENT_LIST_INTERNAL_OUTER(EXPAND(GET_ARG_COUNT(__VA_ARGS__)), __VA_ARGS__)
 
+#define ARGUMENT_LOAD_1_INTERNAL(argument_type, argument_name, argument_expression, ...) EXPAND_VA_ARGS##argument_expression
+
 #define ARGUMENT_LOAD_0()
-#define ARGUMENT_LOAD_1(argument_type, argument_name, argument_expression) \
-EXPAND_VA_ARGS##argument_expression
-#define ARGUMENT_LOAD_2(argument_type, argument_name, argument_expression, ...) \
-ARGUMENT_LOAD_1(argument_type, argument_name, argument_expression) EXPAND(ARGUMENT_LOAD_1(__VA_ARGS__))
-#define ARGUMENT_LOAD_3(argument_type, argument_name, argument_expression, ...) \
-ARGUMENT_LOAD_1(argument_type, argument_name, argument_expression) EXPAND(ARGUMENT_LOAD_2(__VA_ARGS__))
-#define ARGUMENT_LOAD_4(argument_type, argument_name, argument_expression, ...) \
-ARGUMENT_LOAD_1(argument_type, argument_name, argument_expression) EXPAND(ARGUMENT_LOAD_3(__VA_ARGS__))
-#define ARGUMENT_LOAD_5(argument_type, argument_name, argument_expression, ...) \
-ARGUMENT_LOAD_1(argument_type, argument_name, argument_expression) EXPAND(ARGUMENT_LOAD_4(__VA_ARGS__))
-#define ARGUMENT_LOAD_6(argument_type, argument_name, argument_expression, ...) \
-ARGUMENT_LOAD_1(argument_type, argument_name, argument_expression) EXPAND(ARGUMENT_LOAD_5(__VA_ARGS__))
-#define ARGUMENT_LOAD_7(argument_type, argument_name, argument_expression, ...) \
-ARGUMENT_LOAD_1(argument_type, argument_name, argument_expression) EXPAND(ARGUMENT_LOAD_6(__VA_ARGS__))
-#define ARGUMENT_LOAD_8(argument_type, argument_name, argument_expression, ...) \
-ARGUMENT_LOAD_1(argument_type, argument_name, argument_expression) EXPAND(ARGUMENT_LOAD_7(__VA_ARGS__))
-#define ARGUMENT_LOAD_9(argument_type, argument_name, argument_expression, ...) \
-ARGUMENT_LOAD_1(argument_type, argument_name, argument_expression) EXPAND(ARGUMENT_LOAD_8(__VA_ARGS__))
-#define ARGUMENT_LOAD_10(argument_type, argument_name, argument_expression, ...) \
-ARGUMENT_LOAD_1(argument_type, argument_name, argument_expression) EXPAND(ARGUMENT_LOAD_9(__VA_ARGS__))
-#define ARGUMENT_LOAD_11(argument_type, argument_name, argument_expression, ...) \
-ARGUMENT_LOAD_1(argument_type, argument_name, argument_expression) EXPAND(ARGUMENT_LOAD_10(__VA_ARGS__))
-#define ARGUMENT_LOAD_12(argument_type, argument_name, argument_expression, ...) \
-ARGUMENT_LOAD_1(argument_type, argument_name, argument_expression) EXPAND(ARGUMENT_LOAD_11(__VA_ARGS__))
-#define ARGUMENT_LOAD_13(argument_type, argument_name, argument_expression, ...) \
-ARGUMENT_LOAD_1(argument_type, argument_name, argument_expression) EXPAND(ARGUMENT_LOAD_12(__VA_ARGS__))
-#define ARGUMENT_LOAD_14(argument_type, argument_name, argument_expression, ...) \
-ARGUMENT_LOAD_1(argument_type, argument_name, argument_expression) EXPAND(ARGUMENT_LOAD_13(__VA_ARGS__))
-#define ARGUMENT_LOAD_15(argument_type, argument_name, argument_expression, ...) \
-ARGUMENT_LOAD_1(argument_type, argument_name, argument_expression) EXPAND(ARGUMENT_LOAD_14(__VA_ARGS__))
-#define ARGUMENT_LOAD_16(argument_type, argument_name, argument_expression, ...) \
-ARGUMENT_LOAD_1(argument_type, argument_name, argument_expression) EXPAND(ARGUMENT_LOAD_15(__VA_ARGS__))
+#define ARGUMENT_LOAD_1(argument) \
+ARGUMENT_LOAD_1_INTERNAL##argument
+#define ARGUMENT_LOAD_2(argument, ...) \
+ARGUMENT_LOAD_1(argument) EXPAND(ARGUMENT_LOAD_1(__VA_ARGS__))
+#define ARGUMENT_LOAD_3(argument, ...) \
+ARGUMENT_LOAD_1(argument) EXPAND(ARGUMENT_LOAD_2(__VA_ARGS__))
+#define ARGUMENT_LOAD_4(argument, ...) \
+ARGUMENT_LOAD_1(argument) EXPAND(ARGUMENT_LOAD_3(__VA_ARGS__))
+#define ARGUMENT_LOAD_5(argument, ...) \
+ARGUMENT_LOAD_1(argument) EXPAND(ARGUMENT_LOAD_4(__VA_ARGS__))
+#define ARGUMENT_LOAD_6(argument, ...) \
+ARGUMENT_LOAD_1(argument) EXPAND(ARGUMENT_LOAD_5(__VA_ARGS__))
+#define ARGUMENT_LOAD_7(argument, ...) \
+ARGUMENT_LOAD_1(argument) EXPAND(ARGUMENT_LOAD_6(__VA_ARGS__))
+#define ARGUMENT_LOAD_8(argument, ...) \
+ARGUMENT_LOAD_1(argument) EXPAND(ARGUMENT_LOAD_7(__VA_ARGS__))
+#define ARGUMENT_LOAD_9(argument, ...) \
+ARGUMENT_LOAD_1(argument) EXPAND(ARGUMENT_LOAD_8(__VA_ARGS__))
+#define ARGUMENT_LOAD_10(argument, ...) \
+ARGUMENT_LOAD_1(argument) EXPAND(ARGUMENT_LOAD_9(__VA_ARGS__))
+#define ARGUMENT_LOAD_11(argument, ...) \
+ARGUMENT_LOAD_1(argument) EXPAND(ARGUMENT_LOAD_10(__VA_ARGS__))
+#define ARGUMENT_LOAD_12(argument, ...) \
+ARGUMENT_LOAD_1(argument) EXPAND(ARGUMENT_LOAD_11(__VA_ARGS__))
+#define ARGUMENT_LOAD_13(argument, ...) \
+ARGUMENT_LOAD_1(argument) EXPAND(ARGUMENT_LOAD_12(__VA_ARGS__))
+#define ARGUMENT_LOAD_14(argument, ...) \
+ARGUMENT_LOAD_1(argument) EXPAND(ARGUMENT_LOAD_13(__VA_ARGS__))
+#define ARGUMENT_LOAD_15(argument, ...) \
+ARGUMENT_LOAD_1(argument) EXPAND(ARGUMENT_LOAD_14(__VA_ARGS__))
+#define ARGUMENT_LOAD_16(argument, ...) \
+ARGUMENT_LOAD_1(argument) EXPAND(ARGUMENT_LOAD_15(__VA_ARGS__))
 
 #define ARGUMENT_LOAD_INTERNAL(count, ...) EXPAND(ARGUMENT_LOAD_##count(__VA_ARGS__))
 #define ARGUMENT_LOAD_INTERNAL_OUTER(count, ...) ARGUMENT_LOAD_INTERNAL(count, __VA_ARGS__)
@@ -100,12 +110,6 @@ ARGUMENT_LOAD_1(argument_type, argument_name, argument_expression) EXPAND(ARGUME
 #define DEF(a, b) \
 NEW_LINE() \
 HASH()define a b \
-NEW_LINE()
-
-
-#define DEF_ARGS(a, args, value) \
-NEW_LINE() \
-HASH()define a##args EXPAND_VA_ARGS##value \
 NEW_LINE()
 
 #define UNDEF(a) \
@@ -123,7 +127,7 @@ __asm { pop EAX }; \
 __asm { mov RETURN_LOCATION, return_expression }; \
 __asm { mov ESP, EBP }; \
 __asm { pop EBP }; \
-__asm { ret }
+__asm { ret CALLEE_CLEAN }
 
 #define RETURN_VOID() \
 __asm { pop ESI }; \
@@ -154,44 +158,76 @@ ARGUMENT_LOAD(__VA_ARGS__)
 } \
 UNDEF(RETURN_LOCATION)
 
-#define FUNCTION_2(return_type, return_expression, function_name, arguments, body) \
+#define TRAMPOLINE_LOAD_1_INTERNAL(argument_type, argument_name, argument_expression, trampoline_expression) EXPAND_VA_ARGS##trampoline_expression
+
+#define TRAMPOLINE_LOAD_0()
+#define TRAMPOLINE_LOAD_1(argument) \
+TRAMPOLINE_LOAD_1_INTERNAL##argument
+#define TRAMPOLINE_LOAD_2(argument, ...) \
+TRAMPOLINE_LOAD_1(argument) EXPAND(TRAMPOLINE_LOAD_1(__VA_ARGS__))
+#define TRAMPOLINE_LOAD_3(argument, ...) \
+TRAMPOLINE_LOAD_1(argument) EXPAND(TRAMPOLINE_LOAD_2(__VA_ARGS__))
+#define TRAMPOLINE_LOAD_4(argument, ...) \
+TRAMPOLINE_LOAD_1(argument) EXPAND(TRAMPOLINE_LOAD_3(__VA_ARGS__))
+#define TRAMPOLINE_LOAD_5(argument, ...) \
+TRAMPOLINE_LOAD_1(argument) EXPAND(TRAMPOLINE_LOAD_4(__VA_ARGS__))
+#define TRAMPOLINE_LOAD_6(argument, ...) \
+TRAMPOLINE_LOAD_1(argument) EXPAND(TRAMPOLINE_LOAD_5(__VA_ARGS__))
+#define TRAMPOLINE_LOAD_7(argument, ...) \
+TRAMPOLINE_LOAD_1(argument) EXPAND(TRAMPOLINE_LOAD_6(__VA_ARGS__))
+#define TRAMPOLINE_LOAD_8(argument, ...) \
+TRAMPOLINE_LOAD_1(argument) EXPAND(TRAMPOLINE_LOAD_7(__VA_ARGS__))
+#define TRAMPOLINE_LOAD_9(argument, ...) \
+TRAMPOLINE_LOAD_1(argument) EXPAND(TRAMPOLINE_LOAD_8(__VA_ARGS__))
+#define TRAMPOLINE_LOAD_10(argument, ...) \
+TRAMPOLINE_LOAD_1(argument) EXPAND(TRAMPOLINE_LOAD_9(__VA_ARGS__))
+#define TRAMPOLINE_LOAD_11(argument, ...) \
+TRAMPOLINE_LOAD_1(argument) EXPAND(TRAMPOLINE_LOAD_10(__VA_ARGS__))
+#define TRAMPOLINE_LOAD_12(argument, ...) \
+TRAMPOLINE_LOAD_1(argument) EXPAND(TRAMPOLINE_LOAD_11(__VA_ARGS__))
+#define TRAMPOLINE_LOAD_13(argument, ...) \
+TRAMPOLINE_LOAD_1(argument) EXPAND(TRAMPOLINE_LOAD_12(__VA_ARGS__))
+#define TRAMPOLINE_LOAD_14(argument, ...) \
+TRAMPOLINE_LOAD_1(argument) EXPAND(TRAMPOLINE_LOAD_13(__VA_ARGS__))
+#define TRAMPOLINE_LOAD_15(argument, ...) \
+TRAMPOLINE_LOAD_1(argument) EXPAND(TRAMPOLINE_LOAD_14(__VA_ARGS__))
+#define TRAMPOLINE_LOAD_16(argument, ...) \
+TRAMPOLINE_LOAD_1(argument) EXPAND(TRAMPOLINE_LOAD_15(__VA_ARGS__))
+
+#define TRAMPOLINE_LOAD_INTERNAL(count, ...) EXPAND(TRAMPOLINE_LOAD_##count(__VA_ARGS__))
+#define TRAMPOLINE_LOAD_INTERNAL_OUTER(count, ...) TRAMPOLINE_LOAD_INTERNAL(count, __VA_ARGS__)
+#define TRAMPOLINE_LOAD(...) TRAMPOLINE_LOAD_INTERNAL_OUTER(EXPAND(GET_ARG_COUNT(__VA_ARGS__)), __VA_ARGS__)
+
+#define FUNCTION_6(return_type, return_expression, function_name, arguments, callee_clean, body) \
+DEF(CALLEE_CLEAN, callee_clean) \
 BEGIN_FUNCTION(return_type, return_expression, function_name, EXPAND_VA_ARGS##arguments) \
 DEF(RETURN, RETURN_VALUE) \
-DEF(RETURN, RETURN_VALUE) \
-	body \
+	EXPAND_VA_ARGS##body \
 END_FUNCTION() \
 UNDEF(RETURN) \
-DEF_ARGS(CALL_##function_name, (out, ...), (CALL(out, return_expression, function_name, (__VA_ARGS__))))
+return_type function_name##_trampoline(ARGUMENT_LIST(EXPAND_VA_ARGS##arguments)) { return_type __asm_hpp_out; TRAMPOLINE_LOAD(EXPAND_VA_ARGS##arguments); __asm { call function_name }; __asm{ mov __asm_hpp_out, return_expression }; return __asm_hpp_out; } \
+UNDEF(CALLEE_CLEAN)
 
-#define FUNCTION_1(function_name, arguments, body) \
+#define FUNCTION_5(return_type, return_expression, function_name, arguments, body) \
+DEF(CALLEE_CLEAN, 0) \
+BEGIN_FUNCTION(return_type, return_expression, function_name, EXPAND_VA_ARGS##arguments) \
+DEF(RETURN, RETURN_VALUE) \
+	EXPAND_VA_ARGS##body \
+END_FUNCTION() \
+UNDEF(RETURN) \
+return_type function_name##_trampoline(ARGUMENT_LIST(EXPAND_VA_ARGS##arguments)) { return_type __asm_hpp_out; TRAMPOLINE_LOAD(EXPAND_VA_ARGS##arguments); __asm { call function_name }; __asm{ mov __asm_hpp_out, return_expression }; return __asm_hpp_out; } \
+UNDEF(CALLEE_CLEAN)
+
+#define FUNCTION_3(function_name, arguments, body) \
 BEGIN_FUNCTION(void,, function_name, EXPAND_VA_ARGS##arguments) \
 DEF(RETURN, RETURN_VOID) \
-	body \
+	EXPAND_VA_ARGS##body \
 END_FUNCTION() \
 UNDEF(RETURN) \
-DEF_ARGS(CALL_##function_name, (...), (CALL(function_name, (__VA_ARGS__))))
+void function_name##_trampoline(ARGUMENT_LIST(EXPAND_VA_ARGS##arguments)) { TRAMPOLINE_LOAD(EXPAND_VA_ARGS##arguments); __asm { call function_name }; }
 
 #define FUNCTION_INTERNAL(count, ...) EXPAND(FUNCTION_##count(__VA_ARGS__))
 #define FUNCTION_INTERNAL_OUTER(count, ...) FUNCTION_INTERNAL(count, __VA_ARGS__)
-#define FUNCTION(...) FUNCTION_INTERNAL_OUTER(EXPAND(GET_ARG_COUNT(__VA_ARGS__)), __VA_ARGS__)
-
-#define VALUE(variable, expression) \
-,,(__asm { mov expression, variable };)
-
-#define VALUE_STACK(variable) \
-,,(__asm { push variable };)
-
-#define CALL_1(function_name, values) \
-ARGUMENT_LOAD(EXPAND_VA_ARGS##values) \
-__asm { call function_name }
-
-#define CALL_2(out, return_expression, function_name, values) \
-ARGUMENT_LOAD(EXPAND_VA_ARGS##values) \
-__asm { call function_name }; \
-__asm { mov out, return_expression }
-
-#define CALL_INTERNAL(count, ...) EXPAND(CALL_##count(__VA_ARGS__))
-#define CALL_INTERNAL_OUTER(count, ...) CALL_INTERNAL(count, __VA_ARGS__)
-#define CALL(...) CALL_INTERNAL_OUTER(EXPAND(GET_ARG_COUNT(__VA_ARGS__)), __VA_ARGS__)
+#define FUNCTION(...) FUNCTION_INTERNAL_OUTER(GET_ARG_COUNT(__VA_ARGS__), __VA_ARGS__)
 
 #endif // ASM_HPP
