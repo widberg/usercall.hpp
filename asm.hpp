@@ -7,6 +7,9 @@
 #define ARGUMENT(argument_type, argument_name, argument_expression) \
 argument_type, argument_name, (__asm { mov argument_name, argument_expression };)
 
+#define ARGUMENT_STACK(argument_type, argument_name, argument_offset) \
+argument_type, argument_name, (__asm { push EAX }; __asm { mov EAX, [EBP + argument_offset] }; __asm { mov argument_name, EAX }; __asm { pop EAX };)
+
 #define GET_ARG_COUNT(...)  INTERNAL_EXPAND_ARGS_PRIVATE(INTERNAL_ARGS_AUGMENTER(__VA_ARGS__))
 #define INTERNAL_ARGS_AUGMENTER(...) unused, __VA_ARGS__
 #define INTERNAL_EXPAND_ARGS_PRIVATE(...) EXPAND(INTERNAL_GET_ARG_COUNT_PRIVATE(__VA_ARGS__, 16, 16, 16, 15, 15, 15, 14, 14, 14, 13, 13, 13, 12, 12, 12, 11, 11, 11, 10, 10, 10, 9, 9, 9, 8, 8, 8, 7, 7, 7, 6, 6, 6, 5, 5, 5, 4, 4, 4, 3, 3, 3, 2, 2, 2, 1, 1, 1, 0))
@@ -133,13 +136,13 @@ __declspec(naked) return_type function_name(ARGUMENT_LIST(__VA_ARGS__)) { \
 __asm { push EBP }; \
 __asm { mov EBP, ESP }; \
 __asm { sub ESP, __LOCAL_SIZE }; \
-ARGUMENT_LOAD(__VA_ARGS__) \
 __asm { push EAX }; \
 __asm { push EBX }; \
 __asm { push ECX }; \
 __asm { push EDI }; \
 __asm { push EDX }; \
-__asm { push ESI };
+__asm { push ESI }; \
+ARGUMENT_LOAD(__VA_ARGS__)
 
 #define END_FUNCTION() \
 } \
@@ -164,11 +167,11 @@ UNDEF(RETURN)
 #define FUNCTION_INTERNAL_OUTER(count, ...) FUNCTION_INTERNAL(count, __VA_ARGS__)
 #define FUNCTION(...) FUNCTION_INTERNAL_OUTER(EXPAND(GET_ARG_COUNT(__VA_ARGS__)), __VA_ARGS__)
 
-#define PUSH(expression) __asm { push expression }
-#define POP(expression) __asm { pop expression }
-
 #define VALUE(variable, expression) \
 ,,(__asm { mov expression, variable };)
+
+#define VALUE_STACK(variable) \
+,,(__asm { push variable };)
 
 #define CALL_1(function_name, values) \
 ARGUMENT_LOAD(EXPAND_VA_ARGS##values) \
