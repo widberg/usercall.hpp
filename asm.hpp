@@ -102,6 +102,12 @@ NEW_LINE() \
 HASH()define a b \
 NEW_LINE()
 
+
+#define DEF_ARGS(a, args, value) \
+NEW_LINE() \
+HASH()define a##args EXPAND_VA_ARGS##value \
+NEW_LINE()
+
 #define UNDEF(a) \
 NEW_LINE() \
 HASH()undef a \
@@ -154,14 +160,16 @@ DEF(RETURN, RETURN_VALUE) \
 DEF(RETURN, RETURN_VALUE) \
 	body \
 END_FUNCTION() \
-UNDEF(RETURN)
+UNDEF(RETURN) \
+DEF_ARGS(CALL_##function_name, (out, ...), (CALL(out, return_expression, function_name, (__VA_ARGS__))))
 
 #define FUNCTION_1(function_name, arguments, body) \
 BEGIN_FUNCTION(void,, function_name, EXPAND_VA_ARGS##arguments) \
 DEF(RETURN, RETURN_VOID) \
 	body \
 END_FUNCTION() \
-UNDEF(RETURN)
+UNDEF(RETURN) \
+DEF_ARGS(CALL_##function_name, (...), (CALL(function_name, (__VA_ARGS__))))
 
 #define FUNCTION_INTERNAL(count, ...) EXPAND(FUNCTION_##count(__VA_ARGS__))
 #define FUNCTION_INTERNAL_OUTER(count, ...) FUNCTION_INTERNAL(count, __VA_ARGS__)

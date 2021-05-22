@@ -20,8 +20,8 @@ int main()
 	int a = 1;
 	int b = 2;
 	printf("hey %d\n", a);
-	CALL(a, eax, example, (VALUE(a, eax), VALUE(0, ebx), VALUE(0, ecx), VALUE(0, edx), VALUE_STACK(b)));
+	CALL_example(a, VALUE(a, eax), VALUE(0, ebx), VALUE(0, ecx), VALUE(0, edx), VALUE_STACK(b));
 	printf("hey %d\n", a);
-	CALL(example2, ());
+	CALL_example2();
 	return a;
 }
