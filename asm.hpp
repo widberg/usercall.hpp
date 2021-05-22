@@ -130,10 +130,10 @@ __asm { ret }
 #define BEGIN_FUNCTION(return_type, return_expression, function_name, ...) \
 DEF(RETURN_LOCATION, return_expression) \
 __declspec(naked) return_type function_name(ARGUMENT_LIST(__VA_ARGS__)) { \
-ARGUMENT_LOAD(__VA_ARGS__) \
 __asm { push EBP }; \
 __asm { mov EBP, ESP }; \
 __asm { sub ESP, __LOCAL_SIZE }; \
+ARGUMENT_LOAD(__VA_ARGS__) \
 __asm { push EAX }; \
 __asm { push EBX }; \
 __asm { push ECX }; \
@@ -145,18 +145,24 @@ __asm { push ESI };
 } \
 UNDEF(RETURN_LOCATION)
 
-#define FUNCTION(return_type, return_expression, function_name, arguments, body) \
+#define FUNCTION_2(return_type, return_expression, function_name, arguments, body) \
 BEGIN_FUNCTION(return_type, return_expression, function_name, EXPAND_VA_ARGS##arguments) \
 DEF(RETURN, RETURN_VALUE) \
 DEF(RETURN, RETURN_VALUE) \
 	body \
-END_FUNCTION()
+END_FUNCTION() \
+UNDEF(RETURN)
 
-#define FUNCTION_VOID(function_name, arguments, body) \
+#define FUNCTION_1(function_name, arguments, body) \
 BEGIN_FUNCTION(void,, function_name, EXPAND_VA_ARGS##arguments) \
 DEF(RETURN, RETURN_VOID) \
 	body \
-END_FUNCTION()
+END_FUNCTION() \
+UNDEF(RETURN)
+
+#define FUNCTION_INTERNAL(count, ...) EXPAND(FUNCTION_##count(__VA_ARGS__))
+#define FUNCTION_INTERNAL_OUTER(count, ...) FUNCTION_INTERNAL(count, __VA_ARGS__)
+#define FUNCTION(...) FUNCTION_INTERNAL_OUTER(EXPAND(GET_ARG_COUNT(__VA_ARGS__)), __VA_ARGS__)
 
 #define PUSH(expression) __asm { push expression }
 #define POP(expression) __asm { pop expression }
@@ -164,13 +170,17 @@ END_FUNCTION()
 #define VALUE(variable, expression) \
 ,,(__asm { mov expression, variable };)
 
-#define CALL(out, return_expression, function_name, values) \
+#define CALL_1(function_name, values) \
+ARGUMENT_LOAD(EXPAND_VA_ARGS##values) \
+__asm { call function_name }
+
+#define CALL_2(out, return_expression, function_name, values) \
 ARGUMENT_LOAD(EXPAND_VA_ARGS##values) \
 __asm { call function_name }; \
 __asm { mov out, return_expression }
 
-#define CALL_VOID(function_name, values) \
-ARGUMENT_LOAD(EXPAND_VA_ARGS##values) \
-__asm { call function_name }
+#define CALL_INTERNAL(count, ...) EXPAND(CALL_##count(__VA_ARGS__))
+#define CALL_INTERNAL_OUTER(count, ...) CALL_INTERNAL(count, __VA_ARGS__)
+#define CALL(...) CALL_INTERNAL_OUTER(EXPAND(GET_ARG_COUNT(__VA_ARGS__)), __VA_ARGS__)
 
 #endif // ASM_HPP

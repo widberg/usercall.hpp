@@ -8,11 +8,17 @@ FUNCTION(int, eax, example, (ARGUMENT(int, arg, eax), ARGUMENT(int, arg2, ebx), 
 	RETURN(arg);
 })
 
+FUNCTION(example2, (), {
+	printf("void function\n");
+	RETURN();
+})
+
 int main()
 {
 	int a = 0;
 	printf("hey %d\n", a);
 	CALL(a, eax, example, (VALUE(a, eax), VALUE(0, ebx), VALUE(0, ecx), VALUE(0, edx)));
 	printf("hey %d\n", a);
+	CALL(example2, ());
 	return a;
 }
