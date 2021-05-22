@@ -3,7 +3,6 @@
 
 #define EXPAND(x) x
 #define EXPAND_VA_ARGS(...) __VA_ARGS__
-#define REMOVE_PARENTHESES_2(a, b) a, b
 
 #define ARGUMENT(argument_type, argument_name, argument_expression) \
 argument_type, argument_name, (__asm { mov argument_name, argument_expression };)
@@ -53,7 +52,7 @@ ARGUMENT_LIST_1(argument_type, argument_name, argument_expression), EXPAND(ARGUM
 
 #define ARGUMENT_LOAD_0()
 #define ARGUMENT_LOAD_1(argument_type, argument_name, argument_expression) \
-REMOVE_PARENTHESES_2##argument_expression
+EXPAND_VA_ARGS##argument_expression
 #define ARGUMENT_LOAD_2(argument_type, argument_name, argument_expression, ...) \
 ARGUMENT_LOAD_1(argument_type, argument_name, argument_expression) EXPAND(ARGUMENT_LOAD_1(__VA_ARGS__))
 #define ARGUMENT_LOAD_3(argument_type, argument_name, argument_expression, ...) \
@@ -89,7 +88,24 @@ ARGUMENT_LOAD_1(argument_type, argument_name, argument_expression) EXPAND(ARGUME
 #define ARGUMENT_LOAD_INTERNAL_OUTER(count, ...) ARGUMENT_LOAD_INTERNAL(count, __VA_ARGS__)
 #define ARGUMENT_LOAD(...) ARGUMENT_LOAD_INTERNAL_OUTER(EXPAND(GET_ARG_COUNT(__VA_ARGS__)), __VA_ARGS__)
 
-#define BEGIN_FUNCTION(return_type, function_name, ...) \
+#define HASH() #
+#define COMMENT /##/
+#define NEW_LINE_INTERNAL() HASH()define DUMMY R"dummy(
+/*)dummy"
+#define NEW_LINE() COMMENT NEW_LINE_INTERNAL() */
+
+#define DEF(a, b) \
+NEW_LINE() \
+HASH()define a b \
+NEW_LINE()
+
+#define UNDEF(a) \
+NEW_LINE() \
+HASH()undef a \
+NEW_LINE()
+
+#define BEGIN_FUNCTION(return_type, return_expression, function_name, ...) \
+DEF(RETURN_LOCATION, return_expression) \
 __declspec(naked) return_type function_name(ARGUMENT_LIST(__VA_ARGS__)) { \
 ARGUMENT_LOAD(__VA_ARGS__) \
 __asm { push EBP }; \
@@ -103,7 +119,8 @@ __asm { push EDX }; \
 __asm { push ESI };
 
 #define END_FUNCTION() \
-}
+} \
+UNDEF(RETURN_LOCATION)
 
 #define RETURN(return_expression) \
 __asm { pop ESI }; \
@@ -128,21 +145,29 @@ __asm { mov ESP, EBP }; \
 __asm { pop EBP }; \
 __asm { ret }
 
-#define FUNCTION(return_type, function_name, arguments, body) \
-BEGIN_FUNCTION(return_type, function_name, EXPAND_VA_ARGS##arguments) \
+#define FUNCTION(return_type, return_expression, function_name, arguments, body) \
+BEGIN_FUNCTION(return_type, return_expression, function_name, EXPAND_VA_ARGS##arguments) \
 	body \
 END_FUNCTION()
 
+#define FUNCTION_VOID(return_type, function_name, arguments, body) \
+BEGIN_FUNCTION(return_type,, function_name, EXPAND_VA_ARGS##arguments) \
+	body \
+END_FUNCTION()
+
+#define PUSH(expression) __asm { push expression }
+#define POP(expression) __asm { pop expression }
+
 #define VALUE(variable, expression) \
-__asm { mov expression, variable };
+,,(__asm { mov expression, variable };)
 
 #define CALL(out, return_expression, function_name, values) \
-EXPAND_VA_ARGS##values \
+ARGUMENT_LOAD(EXPAND_VA_ARGS##values) \
 __asm { call function_name }; \
 __asm { mov out, return_expression }
 
 #define CALL_VOID(function_name, values) \
-EXPAND_VA_ARGS##values \
+ARGUMENT_LOAD(EXPAND_VA_ARGS##values) \
 __asm { call function_name };
 
 #endif // ASM_HPP
