@@ -104,25 +104,7 @@ NEW_LINE() \
 HASH()undef a \
 NEW_LINE()
 
-#define BEGIN_FUNCTION(return_type, return_expression, function_name, ...) \
-DEF(RETURN_LOCATION, return_expression) \
-__declspec(naked) return_type function_name(ARGUMENT_LIST(__VA_ARGS__)) { \
-ARGUMENT_LOAD(__VA_ARGS__) \
-__asm { push EBP }; \
-__asm { mov EBP, ESP }; \
-__asm { sub ESP, __LOCAL_SIZE }; \
-__asm { push EAX }; \
-__asm { push EBX }; \
-__asm { push ECX }; \
-__asm { push EDI }; \
-__asm { push EDX }; \
-__asm { push ESI };
-
-#define END_FUNCTION() \
-} \
-UNDEF(RETURN_LOCATION)
-
-#define RETURN(return_expression) \
+#define RETURN_VALUE(return_expression) \
 __asm { pop ESI }; \
 __asm { pop EDX }; \
 __asm { pop EDI }; \
@@ -145,13 +127,34 @@ __asm { mov ESP, EBP }; \
 __asm { pop EBP }; \
 __asm { ret }
 
+#define BEGIN_FUNCTION(return_type, return_expression, function_name, ...) \
+DEF(RETURN_LOCATION, return_expression) \
+__declspec(naked) return_type function_name(ARGUMENT_LIST(__VA_ARGS__)) { \
+ARGUMENT_LOAD(__VA_ARGS__) \
+__asm { push EBP }; \
+__asm { mov EBP, ESP }; \
+__asm { sub ESP, __LOCAL_SIZE }; \
+__asm { push EAX }; \
+__asm { push EBX }; \
+__asm { push ECX }; \
+__asm { push EDI }; \
+__asm { push EDX }; \
+__asm { push ESI };
+
+#define END_FUNCTION() \
+} \
+UNDEF(RETURN_LOCATION)
+
 #define FUNCTION(return_type, return_expression, function_name, arguments, body) \
 BEGIN_FUNCTION(return_type, return_expression, function_name, EXPAND_VA_ARGS##arguments) \
+DEF(RETURN, RETURN_VALUE) \
+DEF(RETURN, RETURN_VALUE) \
 	body \
 END_FUNCTION()
 
-#define FUNCTION_VOID(return_type, function_name, arguments, body) \
-BEGIN_FUNCTION(return_type,, function_name, EXPAND_VA_ARGS##arguments) \
+#define FUNCTION_VOID(function_name, arguments, body) \
+BEGIN_FUNCTION(void,, function_name, EXPAND_VA_ARGS##arguments) \
+DEF(RETURN, RETURN_VOID) \
 	body \
 END_FUNCTION()
 
@@ -168,6 +171,6 @@ __asm { mov out, return_expression }
 
 #define CALL_VOID(function_name, values) \
 ARGUMENT_LOAD(EXPAND_VA_ARGS##values) \
-__asm { call function_name };
+__asm { call function_name }
 
 #endif // ASM_HPP
