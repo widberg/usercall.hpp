@@ -1,27 +1,54 @@
 #ifndef ASM_HPP
 #define ASM_HPP
 
-#define FN FUNCTION
-#define ARG ARGUMENT
+#if !defined(_MSVC_TRADITIONAL) || !_MSVC_TRADITIONAL
+#error Unable to use asm.hpp with a standards conforming preprocessor
+#endif
+
+#define IN ,
+
+#define FN_INTERNAL(...) FUNCTION##__VA_ARGS__
+#define FN(...) \
+DEF(_, ARG) \
+FN_INTERNAL((__VA_ARGS__))
+
+#define ARG_INTERNAL(a) ARGUMENT##a
+#define ARG(a, b) ARG_INTERNAL((a, b))
 #define ARG_STACK ARGUMENT_STACK
-#define VAL VALUE
-#define VAL_STACK VALUE_STACK
 
-#define EXPAND(x) x
-#define EXPAND_VA_ARGS(...) __VA_ARGS__
+#define EXPAND(...) __VA_ARGS__
 
-#define ARGUMENT(argument_type, argument_name, argument_expression) \
-(argument_type, argument_name, (__asm { mov argument_name, argument_expression };), (__asm { mov argument_expression, argument_name };))
+#define PAREN_TWO(a, b) \
+(a, b \
+NEW_LINE() \
+)
 
-#define ARGUMENT_STACK(argument_type, argument_name, argument_offset) \
-(argument_type, argument_name, (__asm { push EAX }; __asm { mov EAX, [EBP + argument_offset] }; __asm { mov argument_name, EAX }; __asm { pop EAX };), (__asm { push argument_name };))
+#define EXPAND_DEF(...) \
+DEF##__VA_ARGS__
+
+#define SPACE_DELIM_SECOND_OUT_DEFINE(out_define, input) \
+DEF(input, /HASH()HASH()/) \
+EXPAND_DEF(PAREN_TWO(out_define, input)) \
+UNDEF(input)
+
+#define ARGUMENT(argument_type_argument_name, argument_expression) \
+(argument_type_argument_name, \
+ARGUMENT_NAME, \
+(__asm { mov ARGUMENT_NAME, argument_expression };), \
+(__asm { mov argument_expression, ARGUMENT_NAME };))
+
+#define ARGUMENT_STACK(argument_type_argument_name, argument_offset) \
+(argument_type_argument_name, \
+ARGUMENT_NAME, \
+(__asm { push EAX }; __asm { mov EAX, [EBP + argument_offset] }; __asm { mov ARGUMENT_NAME, EAX }; __asm { pop EAX };), \
+(__asm { push ARGUMENT_NAME };))
 
 #define GET_ARG_COUNT(...)  INTERNAL_EXPAND_ARGS_PRIVATE(INTERNAL_ARGS_AUGMENTER(__VA_ARGS__))
 #define INTERNAL_ARGS_AUGMENTER(...) unused, __VA_ARGS__
 #define INTERNAL_EXPAND_ARGS_PRIVATE(...) EXPAND(INTERNAL_GET_ARG_COUNT_PRIVATE(__VA_ARGS__, 69, 68, 67, 66, 65, 64, 63, 62, 61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51, 50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0))
 #define INTERNAL_GET_ARG_COUNT_PRIVATE(_1_, _2_, _3_, _4_, _5_, _6_, _7_, _8_, _9_, _10_, _11_, _12_, _13_, _14_, _15_, _16_, _17_, _18_, _19_, _20_, _21_, _22_, _23_, _24_, _25_, _26_, _27_, _28_, _29_, _30_, _31_, _32_, _33_, _34_, _35_, _36, _37, _38, _39, _40, _41, _42, _43, _44, _45, _46, _47, _48, _49, _50, _51, _52, _53, _54, _55, _56, _57, _58, _59, _60, _61, _62, _63, _64, _65, _66, _67, _68, _69, _70, count, ...) count
 
-#define ARGUMENT_LIST_1_INTERNAL(argument_type, argument_name, ...) argument_type argument_name
+#define ARGUMENT_LIST_1_INTERNAL(argument_type_argument_name, ...) argument_type_argument_name
 
 #define ARGUMENT_LIST_0()
 #define ARGUMENT_LIST_1(argument) \
@@ -61,7 +88,10 @@ ARGUMENT_LIST_1(argument), EXPAND(ARGUMENT_LIST_15(__VA_ARGS__))
 #define ARGUMENT_LIST_INTERNAL_OUTER(count, ...) ARGUMENT_LIST_INTERNAL(count, __VA_ARGS__)
 #define ARGUMENT_LIST(...) ARGUMENT_LIST_INTERNAL_OUTER(EXPAND(GET_ARG_COUNT(__VA_ARGS__)), __VA_ARGS__)
 
-#define ARGUMENT_LOAD_1_INTERNAL(argument_type, argument_name, argument_expression, ...) EXPAND_VA_ARGS##argument_expression
+#define ARGUMENT_LOAD_1_INTERNAL(argument_type_argument_name, argument_name, argument_expression, ...) \
+SPACE_DELIM_SECOND_OUT_DEFINE(ARGUMENT_NAME, argument_type_argument_name) \
+EXPAND##argument_expression \
+UNDEF(ARGUMENT_NAME)
 
 #define ARGUMENT_LOAD_0()
 #define ARGUMENT_LOAD_1(argument) \
@@ -138,9 +168,10 @@ __asm { pop EBX }; \
 __asm { pop EAX }; \
 __asm { mov ESP, EBP }; \
 __asm { pop EBP }; \
-__asm { ret }
+__asm { ret CALLEE_CLEAN }
 
 #define BEGIN_FUNCTION(return_type, return_expression, function_name, ...) \
+UNDEF(_) \
 DEF(RETURN_LOCATION, return_expression) \
 __declspec(naked) return_type function_name(ARGUMENT_LIST(__VA_ARGS__)) { \
 __asm { push EBP }; \
@@ -158,7 +189,10 @@ ARGUMENT_LOAD(__VA_ARGS__)
 } \
 UNDEF(RETURN_LOCATION)
 
-#define TRAMPOLINE_LOAD_1_INTERNAL(argument_type, argument_name, argument_expression, trampoline_expression) EXPAND_VA_ARGS##trampoline_expression
+#define TRAMPOLINE_LOAD_1_INTERNAL(argument_type_argument_name, argument_name, argument_expression, trampoline_expression) \
+SPACE_DELIM_SECOND_OUT_DEFINE(ARGUMENT_NAME, argument_type_argument_name) \
+EXPAND##trampoline_expression \
+UNDEF(ARGUMENT_NAME)
 
 #define TRAMPOLINE_LOAD_0()
 #define TRAMPOLINE_LOAD_1(argument) \
@@ -200,31 +234,29 @@ TRAMPOLINE_LOAD_1(argument) EXPAND(TRAMPOLINE_LOAD_15(__VA_ARGS__))
 
 #define FUNCTION_6(return_type, return_expression, function_name, arguments, callee_clean, body) \
 DEF(CALLEE_CLEAN, callee_clean) \
-BEGIN_FUNCTION(return_type, return_expression, function_name, EXPAND_VA_ARGS##arguments) \
+BEGIN_FUNCTION(return_type, return_expression, function_name, EXPAND##arguments) \
 DEF(RETURN, RETURN_VALUE) \
-	EXPAND_VA_ARGS##body \
+	EXPAND##body \
 END_FUNCTION() \
 UNDEF(RETURN) \
-return_type function_name##_trampoline(ARGUMENT_LIST(EXPAND_VA_ARGS##arguments)) { return_type __asm_hpp_out; TRAMPOLINE_LOAD(EXPAND_VA_ARGS##arguments); __asm { call function_name }; __asm{ mov __asm_hpp_out, return_expression }; return __asm_hpp_out; } \
+__forceinline return_type function_name##_trampoline(ARGUMENT_LIST(EXPAND##arguments)) { return_type __asm_hpp_out; TRAMPOLINE_LOAD(EXPAND##arguments); __asm { call function_name }; __asm { add ESP, 4 }; __asm { mov __asm_hpp_out, return_expression }; return __asm_hpp_out; } \
 UNDEF(CALLEE_CLEAN)
 
 #define FUNCTION_5(return_type, return_expression, function_name, arguments, body) \
-DEF(CALLEE_CLEAN, 0) \
-BEGIN_FUNCTION(return_type, return_expression, function_name, EXPAND_VA_ARGS##arguments) \
-DEF(RETURN, RETURN_VALUE) \
-	EXPAND_VA_ARGS##body \
+FUNCTION_6(return_type, return_expression, function_name, arguments, 0, body)
+
+#define FUNCTION_4(function_name, arguments, callee_clean, body) \
+DEF(CALLEE_CLEAN, callee_clean) \
+BEGIN_FUNCTION(void,, function_name, EXPAND##arguments) \
+DEF(RETURN, RETURN_VOID) \
+	EXPAND##body \
 END_FUNCTION() \
 UNDEF(RETURN) \
-return_type function_name##_trampoline(ARGUMENT_LIST(EXPAND_VA_ARGS##arguments)) { return_type __asm_hpp_out; TRAMPOLINE_LOAD(EXPAND_VA_ARGS##arguments); __asm { call function_name }; __asm{ mov __asm_hpp_out, return_expression }; return __asm_hpp_out; } \
+__forceinline void function_name##_trampoline(ARGUMENT_LIST(EXPAND##arguments)) { TRAMPOLINE_LOAD(EXPAND##arguments); __asm { call function_name }; } \
 UNDEF(CALLEE_CLEAN)
 
 #define FUNCTION_3(function_name, arguments, body) \
-BEGIN_FUNCTION(void,, function_name, EXPAND_VA_ARGS##arguments) \
-DEF(RETURN, RETURN_VOID) \
-	EXPAND_VA_ARGS##body \
-END_FUNCTION() \
-UNDEF(RETURN) \
-void function_name##_trampoline(ARGUMENT_LIST(EXPAND_VA_ARGS##arguments)) { TRAMPOLINE_LOAD(EXPAND_VA_ARGS##arguments); __asm { call function_name }; }
+FUNCTION_4(function_name, arguments, 0, body)
 
 #define FUNCTION_INTERNAL(count, ...) EXPAND(FUNCTION_##count(__VA_ARGS__))
 #define FUNCTION_INTERNAL_OUTER(count, ...) FUNCTION_INTERNAL(count, __VA_ARGS__)

@@ -5,28 +5,26 @@ C++ Macros for custom calling conventions on functions
 #include <cstdio>
 #include "asm.hpp"
 
-FUNCTION(int, eax, example, (ARGUMENT(int, arg, eax), ARGUMENT(int, arg2, ebx), ARGUMENT(int, arg3, ecx), ARGUMENT(int, arg4, edx), ARGUMENT_STACK(int, arg5, 8)),
-{
-	printf("arg = %d, arg5 = %d\n", arg, arg5);
-	arg = arg + arg5;
-	printf("hey %d\n", arg);
+FN(int IN eax, example, (_(int arg IN eax), _(int arg2 IN ebx), _(int arg3 IN ecx)), (
+	printf("arg = %d, arg4 = %d\n", arg, arg3);
+	arg = arg + arg3;
+	printf("arg = %d, arg4 = %d\n", arg, arg3);
 	RETURN(arg);
-})
+))
 
-FUNCTION(example2, (),
-{
+FN(example2, (), (
 	printf("void function\n");
 	RETURN();
-})
+))
 
 int main()
 {
-	int a = 1;
-	int b = 2;
-	printf("hey %d\n", a);
-	CALL_example(a, VALUE(a, eax), VALUE(0, ebx), VALUE(0, ecx), VALUE(0, edx), VALUE_STACK(b));
-	printf("hey %d\n", a);
-	CALL_example2();
-	return a;
+	int my_a = 1;
+	int my_b = 3;
+	printf("a = %d, b = %d\n", my_a, my_b);
+	example_trampoline(my_a, 0, my_b);
+	printf("a = %d, b = %d\n", my_a, my_b);
+	example2_trampoline();
+	return my_a;
 }
 ```
