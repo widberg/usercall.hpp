@@ -5,11 +5,13 @@
 #error Unable to use asm.hpp with a standards conforming preprocessor
 #endif
 
+#define COMMA ,
 #define IN ,
 
 #define FN_INTERNAL(...) FUNCTION##__VA_ARGS__
 #define FN(...) \
 DEF(_, ARG) \
+DEF(_s, ARG_STACK) \
 FN_INTERNAL((__VA_ARGS__))
 
 #define ARG_INTERNAL(a) ARGUMENT##a
@@ -172,6 +174,7 @@ __asm { ret CALLEE_CLEAN }
 
 #define BEGIN_FUNCTION(return_type, return_expression, function_name, ...) \
 UNDEF(_) \
+UNDEF(_s) \
 DEF(RETURN_LOCATION, return_expression) \
 __declspec(naked) return_type function_name(ARGUMENT_LIST(__VA_ARGS__)) { \
 __asm { push EBP }; \
