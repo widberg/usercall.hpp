@@ -1,5 +1,5 @@
-#ifndef ASM_HPP
-#define ASM_HPP
+#ifndef USERCALL_HPP
+#define USERCALL_HPP
 
 #if !defined(_MSVC_TRADITIONAL) || !_MSVC_TRADITIONAL
 #error Unable to use asm.hpp with a standard conforming preprocessor
@@ -315,4 +315,4 @@ FUNCTION_4(function_name, arguments, 0, body)
 #define FUNCTION_INTERNAL_OUTER(count, ...) FUNCTION_INTERNAL(count, __VA_ARGS__)
 #define FUNCTION(...) FUNCTION_INTERNAL_OUTER(GET_ARG_COUNT(__VA_ARGS__), __VA_ARGS__)
 
-#endif // ASM_HPP
+#endif // USERCALL_HPP
