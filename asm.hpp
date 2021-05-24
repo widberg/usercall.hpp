@@ -9,7 +9,7 @@
 #define __usercall ,
 
 #define FN_INTERNAL(...) FUNCTION##__VA_ARGS__
-#define FN(a, ...) \
+#define F(a, ...) \
 DEF(_, ARG) \
 DEF(_s, ARG_STACK) \
 SPLIT(OUT, a, IN) \
@@ -187,7 +187,7 @@ __asm { mov ESP, EBP }; \
 __asm { pop EBP }; \
 __asm { ret CALLEE_CLEAN }
 
-#define RETURN_VOID() \
+#define RETURN_VOID \
 __asm { pop ESI }; \
 __asm { pop EDX }; \
 __asm { pop EDI }; \
