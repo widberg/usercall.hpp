@@ -8,8 +8,8 @@ I originally had this idea while using [microsoft/Detours](https://github.com/mi
 
 ## TODO
 
-[] __userpurge
-[] stack arguments
+- [ ] __userpurge
+- [ ] stack arguments
 
 ## Example
 
