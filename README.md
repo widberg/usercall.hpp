@@ -9,16 +9,19 @@ I originally had this idea while using [microsoft/Detours](https://github.com/mi
 ## Features
 
 - [X] `__usercall`
-- [X] register arguments
-- [X] auto-generated trampoline functions to call `__usercall` functions from a `__cdecl` interface
+- [X] Register arguments
+- [X] Auto-generated trampoline functions to call `__usercall` functions from a `__cdecl` interface
+- [X] Value functions with explicit return location
 - [X] `void` functions
-- [X] value functions
+- [X] Syntax that closely mirrors standard MSVC Visual C++ function syntax
+- [X] Terminology consistent with IDA Pro
+- [X] Source code that demonstrates several undocumented tricks available in the [new MSVC preprocessor](https://docs.microsoft.com/en-us/cpp/preprocessor/preprocessor-experimental-overview?view=msvc-160)
 
 ## TODO
 
-- [ ] prototypes
+- [ ] Prototypes
 - [ ] `__userpurge`
-- [ ] stack arguments
+- [ ] Stack arguments
 
 ## Example
 
@@ -28,14 +31,16 @@ I originally had this idea while using [microsoft/Detours](https://github.com/mi
 #include <cstdio>
 #include "usercall.hpp"
 
-F(int IN eax __usercall example, (int arg IN eax, int arg2 IN ebx, int arg3 IN ecx), (
+F(int IN eax __usercall example, (int arg IN eax, int arg2 IN ebx, int arg3 IN ecx),
+(
 	printf("arg = %d, arg4 = %d\n", arg, arg3);
 	arg = arg + arg3;
 	printf("arg = %d, arg4 = %d\n", arg, arg3);
 	RETURN(arg);
 ))
 
-F(void __usercall example2, (), (
+F(void __usercall example2, (),
+(
 	printf("void function\n");
 	RETURN;
 ))
