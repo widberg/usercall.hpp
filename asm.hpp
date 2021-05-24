@@ -9,10 +9,12 @@
 #define __usercall ,
 
 #define FN_INTERNAL(...) FUNCTION##__VA_ARGS__
-#define FN(...) \
+#define FN(a, ...) \
 DEF(_, ARG) \
 DEF(_s, ARG_STACK) \
-FN_INTERNAL((__VA_ARGS__))
+SPLIT(OUT, a, IN) \
+FN_INTERNAL((DEFER(EXPAND)OUT, __VA_ARGS__)) \
+UNDEF(OUT)
 
 #define ARG_INTERNAL(a) ARGUMENT##a
 #define ARG(a, b) ARG_INTERNAL((a, b))

@@ -2,12 +2,12 @@
 #include "asm.hpp"
 
 // F(int IN eax __usercall example(int arg IN eax, int arg2 IN ebx, int arg3 IN ecx), (
-FN(int, eax __usercall example, (int arg IN eax, int arg2 IN ebx, int arg3 IN ecx), (
+FN(int IN eax __usercall example, (int arg IN eax, int arg2 IN ebx, int arg3 IN ecx), (
 	printf("arg = %d, arg4 = %d\n", arg, arg3);
 	arg = arg + arg3;
 	printf("arg = %d, arg4 = %d\n", arg, arg3);
 	RETURN(arg);
-)
+))
 
 FN(example2, (), (
 	printf("void function\n");
