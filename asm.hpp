@@ -2,11 +2,11 @@
 #define ASM_HPP
 
 #if !defined(_MSVC_TRADITIONAL) || !_MSVC_TRADITIONAL
-#error Unable to use asm.hpp with a standards conforming preprocessor
+#error Unable to use asm.hpp with a standard conforming preprocessor
 #endif
 
 #define COMMA ,
-#define IN ,
+#define __usercall ,
 
 #define FN_INTERNAL(...) FUNCTION##__VA_ARGS__
 #define FN(...) \
@@ -18,6 +18,9 @@ FN_INTERNAL((__VA_ARGS__))
 #define ARG(a, b) ARG_INTERNAL((a, b))
 #define ARG_STACK ARGUMENT_STACK
 
+#define EMPTY()
+#define DEFER(id) id EMPTY()
+#define OBSTRUCT(...) __VA_ARGS__ DEFER(EMPTY)()
 #define EXPAND(...) __VA_ARGS__
 
 #define PAREN_TWO(a, b) \
@@ -27,6 +30,9 @@ NEW_LINE() \
 
 #define EXPAND_DEF(...) \
 DEF##__VA_ARGS__
+
+#define SPACE_DELIM_SECOND_OUT_UNDEFINE(a) \
+UNDEF(a)
 
 #define SPACE_DELIM_SECOND_OUT_DEFINE(out_define, input) \
 DEF(input, /HASH()HASH()/) \
@@ -45,6 +51,12 @@ ARGUMENT_NAME, \
 (__asm { push EAX }; __asm { mov EAX, [EBP + argument_offset] }; __asm { mov ARGUMENT_NAME, EAX }; __asm { pop EAX };), \
 (__asm { push ARGUMENT_NAME };))
 
+
+#define SPLIT(out, input, spliter) \
+DEF(spliter, COMMA) \
+EXPAND_DEF((out, (input))) \
+UNDEF(spliter)
+
 #define GET_ARG_COUNT(...)  INTERNAL_EXPAND_ARGS_PRIVATE(INTERNAL_ARGS_AUGMENTER(__VA_ARGS__))
 #define INTERNAL_ARGS_AUGMENTER(...) unused, __VA_ARGS__
 #define INTERNAL_EXPAND_ARGS_PRIVATE(...) EXPAND(INTERNAL_GET_ARG_COUNT_PRIVATE(__VA_ARGS__, 69, 68, 67, 66, 65, 64, 63, 62, 61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51, 50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0))
@@ -54,7 +66,9 @@ ARGUMENT_NAME, \
 
 #define ARGUMENT_LIST_0()
 #define ARGUMENT_LIST_1(argument) \
-ARGUMENT_LIST_1_INTERNAL##argument
+ARGUMENT_TUPLE_FROM_STRING(ARGUMENT_TUPLE, argument) \
+DEFER(EXPAND)(DEFER(ARGUMENT_LIST_1_INTERNAL)ARGUMENT_TUPLE) \
+UNDEF(ARGUMENT_TUPLE)
 #define ARGUMENT_LIST_2(argument, ...) \
 ARGUMENT_LIST_1(argument), EXPAND(ARGUMENT_LIST_1(__VA_ARGS__))
 #define ARGUMENT_LIST_3(argument, ...) \
@@ -95,9 +109,19 @@ SPACE_DELIM_SECOND_OUT_DEFINE(ARGUMENT_NAME, argument_type_argument_name) \
 EXPAND##argument_expression \
 UNDEF(ARGUMENT_NAME)
 
+#define BEFORE_ARGUMENT_LOAD_1_INTERNAL(...) ARGUMENT_LOAD_1_INTERNAL##__VA_ARGS__
+#define BEFORE_BEFORE_ARGUMENT_LOAD_1_INTERNAL(...) BEFORE_ARGUMENT_LOAD_1_INTERNAL(__VA_ARGS__)
+
+#define ARGUMENT_TUPLE_FROM_STRING(out, string) \
+SPLIT(ARGUMENT_TWO_TUPLE, string, IN) \
+EXPAND_DEF((out, EXPAND(DEFER(ARGUMENT)ARGUMENT_TWO_TUPLE))) \
+UNDEF(ARGUMENT_TWO_TUPLE)
+
 #define ARGUMENT_LOAD_0()
 #define ARGUMENT_LOAD_1(argument) \
-ARGUMENT_LOAD_1_INTERNAL##argument
+ARGUMENT_TUPLE_FROM_STRING(ARGUMENT_TUPLE, argument) \
+DEFER(BEFORE_BEFORE_ARGUMENT_LOAD_1_INTERNAL)(ARGUMENT_TUPLE) \
+UNDEF(ARGUMENT_TUPLE)
 #define ARGUMENT_LOAD_2(argument, ...) \
 ARGUMENT_LOAD_1(argument) EXPAND(ARGUMENT_LOAD_1(__VA_ARGS__))
 #define ARGUMENT_LOAD_3(argument, ...) \
@@ -197,9 +221,14 @@ SPACE_DELIM_SECOND_OUT_DEFINE(ARGUMENT_NAME, argument_type_argument_name) \
 EXPAND##trampoline_expression \
 UNDEF(ARGUMENT_NAME)
 
+#define BEFORE_TRAMPOLINE_LOAD_1_INTERNAL(...) TRAMPOLINE_LOAD_1_INTERNAL##__VA_ARGS__
+#define BEFORE_BEFORE_TRAMPOLINE_LOAD_1_INTERNAL(...) BEFORE_TRAMPOLINE_LOAD_1_INTERNAL(__VA_ARGS__)
+
 #define TRAMPOLINE_LOAD_0()
 #define TRAMPOLINE_LOAD_1(argument) \
-TRAMPOLINE_LOAD_1_INTERNAL##argument
+ARGUMENT_TUPLE_FROM_STRING(ARGUMENT_TUPLE, argument) \
+DEFER(BEFORE_BEFORE_TRAMPOLINE_LOAD_1_INTERNAL)(ARGUMENT_TUPLE) \
+UNDEF(ARGUMENT_TUPLE)
 #define TRAMPOLINE_LOAD_2(argument, ...) \
 TRAMPOLINE_LOAD_1(argument) EXPAND(TRAMPOLINE_LOAD_1(__VA_ARGS__))
 #define TRAMPOLINE_LOAD_3(argument, ...) \
