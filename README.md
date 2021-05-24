@@ -1,9 +1,23 @@
 # asm.hpp
-C++ Macros for custom calling conventions on functions
+
+MSVC Visual C++ Macros for custom calling conventions on functions
+
+## Why?
+
+I originally had this idea while using [microsoft/Detours](https://github.com/microsoft/Detours) to inject a DLL into a running program and hook some functions. The problem with using the standard [Argument Passing and Naming Conventions](https://docs.microsoft.com/en-us/cpp/cpp/argument-passing-and-naming-conventions?view=msvc-160), i.e. __cdecl, __fastcall, __stdcall, etc., is that not every function in the exe used one of these predefined standards. After some research I discovered that this was due to the MSVC Visual C++ compiler optimizing register allocations to prevent stack thrashing. Long story short, I got fed up with writing a custom prolog and epilog for every function so here we are `usercall.hpp`.
+
+## TODO
+
+[] __userpurge
+[] stack arguments
+
+## Example
 
 ```cpp
+// main.cpp
+
 #include <cstdio>
-#include "asm.hpp"
+#include "usercall.hpp"
 
 F(int IN eax __usercall example, (int arg IN eax, int arg2 IN ebx, int arg3 IN ecx), (
 	printf("arg = %d, arg4 = %d\n", arg, arg3);
