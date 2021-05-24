@@ -5,6 +5,10 @@
 #error Unable to use asm.hpp with a standard conforming preprocessor
 #endif
 
+#ifdef USERCALL_HPP_DISABLE_WARNINGS
+#pragma warning( disable : 4067 )
+#endif
+
 #define COMMA ,
 #define __usercall ,
 #define __userpurge ,
@@ -20,17 +24,11 @@ MARTIAL_FN_INTERNAL_##void_check(out, __VA_ARGS__)
 #define MARTIAL_FN(void_check, out, ...) MARTIAL_FN_INTERNAL(void_check, out, __VA_ARGS__)
 
 #define F(a, ...) \
-DEF(_, ARG) \
-DEF(_s, ARG_STACK) \
 SPLIT_SIZE(VOID_CHECK, a, void) \
 SPLIT(OUT, a, IN) \
 DEFER(MARTIAL_FN)(VOID_CHECK, OUT, __VA_ARGS__) \
 UNDEF(VOID_CHECK) \
 UNDEF(OUT)
-
-#define ARG_INTERNAL(a) ARGUMENT##a
-#define ARG(a, b) ARG_INTERNAL((a, b))
-#define ARG_STACK ARGUMENT_STACK
 
 #define SPLIT_SIZE(out, string, splitter) \
 SPLIT(SPLIT_SIZE_INTERNAL_OUT, string, splitter) \
@@ -50,12 +48,9 @@ NEW_LINE() \
 #define EXPAND_DEF(...) \
 DEF##__VA_ARGS__
 
-#define SPACE_DELIM_SECOND_OUT_UNDEFINE(a) \
-UNDEF(a)
-
 #define SPACE_DELIM_SECOND_OUT_DEFINE(out_define, input) \
 DEF(input, /HASH()HASH()/) \
-EXPAND_DEF(PAREN_TWO(out_define, input)) \
+EXPAND_DEF(PAREN_TWO(out_define, input))\
 UNDEF(input)
 
 #define ARGUMENT(argument_type_argument_name, argument_expression) \
@@ -69,7 +64,6 @@ ARGUMENT_NAME, \
 ARGUMENT_NAME, \
 (__asm { push EAX }; __asm { mov EAX, [EBP + argument_offset] }; __asm { mov ARGUMENT_NAME, EAX }; __asm { pop EAX };), \
 (__asm { push ARGUMENT_NAME };))
-
 
 #define SPLIT(out, input, spliter) \
 DEF(spliter, COMMA) \
@@ -218,8 +212,6 @@ __asm { pop EBP }; \
 __asm { ret CALLEE_CLEAN }
 
 #define BEGIN_FUNCTION(return_type, return_expression, function_name, ...) \
-UNDEF(_) \
-UNDEF(_s) \
 DEF(RETURN_LOCATION, return_expression) \
 __declspec(naked) return_type function_name(ARGUMENT_LIST(__VA_ARGS__)) { \
 __asm { push EBP }; \
