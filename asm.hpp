@@ -9,16 +9,32 @@
 #define __usercall ,
 
 #define FN_INTERNAL(...) FUNCTION##__VA_ARGS__
+
+#define TUPLE_GET_SECOND(a, b, ...) b
+
+#define MARTIAL_FN_INTERNAL_2(out, ...) FN_INTERNAL((EXPAND##out, __VA_ARGS__))
+#define MARTIAL_FN_INTERNAL_3(out, ...) DEFER(FN_INTERNAL)((TUPLE_GET_SECOND##out, __VA_ARGS__))
+#define MARTIAL_FN_INTERNAL(void_check, out, ...) \
+MARTIAL_FN_INTERNAL_##void_check(out, __VA_ARGS__)
+#define MARTIAL_FN(void_check, out, ...) MARTIAL_FN_INTERNAL(void_check, out, __VA_ARGS__)
+
 #define F(a, ...) \
 DEF(_, ARG) \
 DEF(_s, ARG_STACK) \
+SPLIT_SIZE(VOID_CHECK, a, void) \
 SPLIT(OUT, a, IN) \
-FN_INTERNAL((DEFER(EXPAND)OUT, __VA_ARGS__)) \
+DEFER(MARTIAL_FN)(VOID_CHECK, OUT, __VA_ARGS__) \
+UNDEF(VOID_CHECK) \
 UNDEF(OUT)
 
 #define ARG_INTERNAL(a) ARGUMENT##a
 #define ARG(a, b) ARG_INTERNAL((a, b))
 #define ARG_STACK ARGUMENT_STACK
+
+#define SPLIT_SIZE(out, string, splitter) \
+SPLIT(SPLIT_SIZE_INTERNAL_OUT, string, splitter) \
+EXPAND_DEF((out, EXPAND(DEFER(GET_ARG_COUNT)SPLIT_SIZE_INTERNAL_OUT))) \
+UNDEF(SPLIT_SIZE_INTERNAL_OUT)
 
 #define EMPTY()
 #define DEFER(id) id EMPTY()
@@ -59,6 +75,8 @@ DEF(spliter, COMMA) \
 EXPAND_DEF((out, (input))) \
 UNDEF(spliter)
 
+#define GET_ARG_COUNT_TUPLE_INTERNAL(...) GET_ARG_COUNT##__VA_ARGS__
+#define GET_ARG_COUNT_TUPLE(...) EXPAND(DEFER(GET_ARG_COUNT)__VA_ARGS__)
 #define GET_ARG_COUNT(...)  INTERNAL_EXPAND_ARGS_PRIVATE(INTERNAL_ARGS_AUGMENTER(__VA_ARGS__))
 #define INTERNAL_ARGS_AUGMENTER(...) unused, __VA_ARGS__
 #define INTERNAL_EXPAND_ARGS_PRIVATE(...) EXPAND(INTERNAL_GET_ARG_COUNT_PRIVATE(__VA_ARGS__, 69, 68, 67, 66, 65, 64, 63, 62, 61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51, 50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0))

@@ -8,7 +8,7 @@ F(int IN eax __usercall example, (int arg IN eax, int arg2 IN ebx, int arg3 IN e
 	RETURN(arg);
 ))
 
-F(example2, (), (
+F(void __usercall example2, (), (
 	printf("void function\n");
 	RETURN;
 ))
