@@ -292,7 +292,7 @@ DEF(RETURN, RETURN_VALUE) \
 	EXPAND##body \
 END_FUNCTION() \
 UNDEF(RETURN) \
-__forceinline return_type function_name##_trampoline(ARGUMENT_LIST(EXPAND##arguments)) { return_type __asm_hpp_out; TRAMPOLINE_LOAD(EXPAND##arguments); __asm { call function_name }; __asm { add ESP, 4 }; __asm { mov __asm_hpp_out, return_expression }; return __asm_hpp_out; } \
+return_type function_name##_trampoline(ARGUMENT_LIST(EXPAND##arguments)) { return_type __asm_hpp_out; TRAMPOLINE_LOAD(EXPAND##arguments); __asm { call function_name }; __asm { add ESP, 4 }; __asm { mov __asm_hpp_out, return_expression }; return __asm_hpp_out; } \
 UNDEF(CALLEE_CLEAN)
 
 #define FUNCTION_5(return_type, return_expression, function_name, arguments, body) \
@@ -305,7 +305,7 @@ DEF(RETURN, RETURN_VOID) \
 	EXPAND##body \
 END_FUNCTION() \
 UNDEF(RETURN) \
-__forceinline void function_name##_trampoline(ARGUMENT_LIST(EXPAND##arguments)) { TRAMPOLINE_LOAD(EXPAND##arguments); __asm { call function_name }; } \
+void function_name##_trampoline(ARGUMENT_LIST(EXPAND##arguments)) { TRAMPOLINE_LOAD(EXPAND##arguments); __asm { call function_name }; } \
 UNDEF(CALLEE_CLEAN)
 
 #define FUNCTION_3(function_name, arguments, body) \
