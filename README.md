@@ -9,6 +9,7 @@ I originally had this idea while using [microsoft/Detours](https://github.com/mi
 ## Features
 
 - [X] `__usercall`
+- [X] `__userpurge`
 - [X] Register arguments
 - [X] Auto-generated trampoline functions to call `__usercall` functions from a `__cdecl` interface
 - [X] Value functions with explicit return location
@@ -17,9 +18,8 @@ I originally had this idea while using [microsoft/Detours](https://github.com/mi
 - [X] Syntax that closely mirrors standard MSVC Visual C++ function syntax
 - [X] Terminology consistent with IDA Pro
 - [X] Source code that demonstrates several undocumented tricks available in the [new MSVC preprocessor](https://docs.microsoft.com/en-us/cpp/preprocessor/preprocessor-experimental-overview?view=msvc-160)
-- [ ] `__userpurge`
 - [ ] Stack arguments
-- [ ] Fix warning and line number shenanigans (kind of expected with this level of abuse of the preprocessor)
+- [ ] Fix line number shenanigans (kind of expected with this level of abuse of the preprocessor)
 
 ## Install
 

@@ -27,8 +27,7 @@
 //                                             //
 /////////////////////////////////////////////////
 
-#define USERCALL_HPP_DISABLE_WARNINGS
-#define USERCALL_HPP_USE_SHORT_NAMES
+// Unimplemented: #define USERCALL_HPP_USE_SHORT_NAMES
 
 /////////////////////////////////////////////////
 //                                             //
@@ -42,23 +41,13 @@
 
 /////////////////////////////////////////////////
 //                                             //
-//         PREPROCESSOR CONFIGURATION          //
-//                                             //
-/////////////////////////////////////////////////
-
-#ifdef USERCALL_HPP_DISABLE_WARNINGS
-#    pragma warning( disable : 4067 )
-#endif
-
-/////////////////////////////////////////////////
-//                                             //
 //                  UTILITY                    //
 //                                             //
 /////////////////////////////////////////////////
 
-#define COMMA ,
+#define COMMA() ,
 
-#define EMPTY()
+#define EMPTY(...)
 #define DEFER(id) id EMPTY()
 #define OBSTRUCT(...) __VA_ARGS__ DEFER(EMPTY)()
 #define EXPAND(...) __VA_ARGS__
@@ -74,10 +63,13 @@ NEW_LINE() \
 #define SPACE_DELIM_SECOND_OUT_DEFINE(out_define, input) \
 	DEF(input, /HASH()HASH()/) \
 	DEFER(DEF)PAREN_TWO(out_define, input) \
-	UNDEF(input)
+	__pragma(warning(push)) \
+	__pragma(warning(disable:4067)) \
+	UNDEF(input) \
+	__pragma(warning(pop))
 
 #define SPLIT(out, input, spliter) \
-	DEF(spliter, COMMA) \
+	DEF(spliter, COMMA()) \
 	DEFER(DEF)(out, (input)) \
 	UNDEF(spliter)
 
@@ -118,8 +110,13 @@ NEW_LINE() \
 //                                             //
 /////////////////////////////////////////////////
 
-#define __usercall ,
-#define __userpurge ,
+#define __usercall(callee_clean) \
+	COMMA() \
+	(callee_clean, 0, callee_clean)
+
+#define __userpurge(caller_clean) \
+	COMMA() \
+	(0, caller_clean, caller_clean)
 
 // Function
 
@@ -277,7 +274,6 @@ return_type function_name##_trampoline(DEFER(ARGUMENT_LIST)(CAT(EXPAND, argument
 // END_FUNCTION
 
 #define END_FUNCTION() \
-NEW_LINE() \
 DEFER(CAT)(USERCALL__FUNCTION__, _return): \
 UNDEF(USERCALL__FUNCTION__) \
 	__asm { pop ESI } \
@@ -338,37 +334,36 @@ UNDEF(USERCALL__FUNCTION__) \
 
 // FUNCTION
 
-#define FUNCTION_6(return_type, return_expression, function_name, arguments, callee_clean, body) \
-	PROTOTYPE(return_type, function_name, arguments) \
-	return_type function_name##_trampoline(ARGUMENT_LIST(EXPAND##arguments)) { return_type __asm_hpp_out; TRAMPOLINE_LOAD(EXPAND##arguments) __asm { call function_name } __asm { mov __asm_hpp_out, return_expression } return __asm_hpp_out; } \
-	DEF(CALLEE_CLEAN, callee_clean) \
-	BEGIN_FUNCTION(return_type, return_expression, function_name, EXPAND##arguments) \
+#define DEFINE_CLEAN(callee, caller, args) \
+DEF(CALLEE_CLEAN, callee) \
+DEF(CALLER_CLEAN, caller) \
+DEF(ARGS_SIZE, args)
+
+#define FUNCTION_5(return_type, return_expression, function_name, arguments, body) \
+	PROTOTYPE(return_type, EMPTY##function_name, arguments) \
+	return_type DEFINE_CLEAN##function_name##_trampoline(ARGUMENT_LIST(EXPAND##arguments)) { return_type __asm_hpp_out; __asm { sub ESP, ARGS_SIZE } TRAMPOLINE_LOAD(EXPAND##arguments) __asm { call EMPTY##function_name } __asm { add ESP, CALLER_CLEAN } __asm { mov __asm_hpp_out, return_expression } return __asm_hpp_out; } \
+	BEGIN_FUNCTION(return_type, return_expression, EMPTY##function_name, EXPAND##arguments) \
 	DEF(return, RETURN_VALUE) \
 		EXPAND##body \
 	END_FUNCTION() \
 	UNDEF(return) \
-	UNDEF(CALLEE_CLEAN)
+	UNDEF(CALLEE_CLEAN) \
+	UNDEF(CALLER_CLEAN) \
+	UNDEF(ARGS_SIZE)
 
-#define FUNCTION_5(return_type, return_expression, function_name, arguments, body) \
-	FUNCTION_6(return_type, return_expression, function_name, arguments, 0, body)
-
-#define FUNCTION_4(function_name, arguments, callee_clean, body) \
-	PROTOTYPE(void, function_name, arguments) \
-	void function_name##_trampoline(ARGUMENT_LIST(EXPAND##arguments)) { TRAMPOLINE_LOAD(EXPAND##arguments) __asm { call function_name } } \
-	DEF(CALLEE_CLEAN, callee_clean) \
-	BEGIN_FUNCTION(void,, function_name, EXPAND##arguments) \
+#define FUNCTION_3(function_name, arguments, body) \
+	PROTOTYPE(void, EMPTY##function_name, arguments) \
+	void DEFINE_CLEAN##function_name##_trampoline(ARGUMENT_LIST(EXPAND##arguments)) { __asm { sub ESP, ARGS_SIZE } TRAMPOLINE_LOAD(EXPAND##arguments) __asm { call EMPTY##function_name } __asm { add ESP, CALLER_CLEAN } } \
+	BEGIN_FUNCTION(void,, EMPTY##function_name, EXPAND##arguments) \
 	DEF(return, RETURN_VOID) \
 		EXPAND##body \
 	END_FUNCTION() \
 	UNDEF(return) \
-	UNDEF(CALLEE_CLEAN)
+	UNDEF(CALLEE_CLEAN) \
+	UNDEF(CALLER_CLEAN) \
+	UNDEF(ARGS_SIZE)
 
-#define FUNCTION_3(function_name, arguments, body) \
-	FUNCTION_4(function_name, arguments, 0, body)
-
-#define FUNCTION_INTERNAL(count, ...) EXPAND(FUNCTION_##count(__VA_ARGS__))
-#define FUNCTION_INTERNAL_OUTER(count, ...) FUNCTION_INTERNAL(count, __VA_ARGS__)
-#define FUNCTION(...) FUNCTION_INTERNAL_OUTER(GET_ARG_COUNT(__VA_ARGS__), __VA_ARGS__)
+#define FUNCTION(...)  EXPAND(DEFER(CAT)(FUNCTION_, GET_ARG_COUNT(__VA_ARGS__))(__VA_ARGS__))
 
 #define PUSH_ARGUMENT(argument) __asm { push argument }
 

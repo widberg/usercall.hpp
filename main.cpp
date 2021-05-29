@@ -1,8 +1,22 @@
 #include <cstdio>
 #include "usercall.hpp"
 
-P(int IN eax __usercall example, (int arg IN eax, int arg2 IN ebx, int arg3 IN ecx));
-P(void __usercall example2, ());
+// P(int IN eax __usercall example, (int arg IN eax, int arg2 IN ebx, int arg3 IN ecx));
+// P(void __usercall example2, ());
+
+F(int IN eax __usercall(0) example, (int arg IN eax, int arg2 IN ebx, int arg3 IN ecx),
+(
+	printf("arg = %d, arg4 = %d\n", arg, arg3);
+	arg = arg + arg3;
+	printf("arg = %d, arg4 = %d\n", arg, arg3);
+	return (arg);
+))
+
+F(void __usercall(0) example2, (),
+(
+	printf("void function\n");
+	return;
+))
 
 int main()
 {
@@ -14,17 +28,3 @@ int main()
 	example2_trampoline();
 	return my_a;
 }
-
-F(int IN eax __usercall example, (int arg IN eax, int arg2 IN ebx, int arg3 IN ecx),
-(
-	printf("arg = %d, arg4 = %d\n", arg, arg3);
-	arg = arg + arg3;
-	printf("arg = %d, arg4 = %d\n", arg, arg3);
-	return (arg);
-))
-
-F(void __usercall example2, (),
-(
-	printf("void function\n");
-	return;
-))
