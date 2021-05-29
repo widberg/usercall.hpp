@@ -1,20 +1,8 @@
 #include <cstdio>
-#define USERCALL_HPP_DISABLE_WARNINGS
 #include "usercall.hpp"
 
-F(int IN eax __usercall example, (int arg IN eax, int arg2 IN ebx, int arg3 IN ecx),
-(
-	printf("arg = %d, arg4 = %d\n", arg, arg3);
-	arg = arg + arg3;
-	printf("arg = %d, arg4 = %d\n", arg, arg3);
-	RETURN(arg);
-))
-
-F(void __usercall example2, (),
-(
-	printf("void function\n");
-	RETURN;
-))
+P(int IN eax __usercall example, (int arg IN eax, int arg2 IN ebx, int arg3 IN ecx));
+P(void __usercall example2, ());
 
 int main()
 {
@@ -26,3 +14,17 @@ int main()
 	example2_trampoline();
 	return my_a;
 }
+
+F(int IN eax __usercall example, (int arg IN eax, int arg2 IN ebx, int arg3 IN ecx),
+(
+	printf("arg = %d, arg4 = %d\n", arg, arg3);
+	arg = arg + arg3;
+	printf("arg = %d, arg4 = %d\n", arg, arg3);
+	return (arg);
+))
+
+F(void __usercall example2, (),
+(
+	printf("void function\n");
+	return;
+))
