@@ -104,31 +104,58 @@ NEW_LINE() \
 #define CAT(a, ...) PRIMITIVE_CAT(a, __VA_ARGS__)
 #define PRIMITIVE_CAT(a, ...) a ## __VA_ARGS__
 
+#define USERCALL_PREPROCESSOR_ASSERT_DEFINED(macro, message) \
+	NEW_LINE() \
+	HASH()ifndef macro \
+	NEW_LINE() \
+	HASH()error message \
+	NEW_LINE() \
+	HASH()endif \
+	NEW_LINE()
+
 /////////////////////////////////////////////////
 //                                             //
-//                USERCALL CORE                //
+//               USERCALL PUBLIC               //
 //                                             //
 /////////////////////////////////////////////////
 
-#define __usercall(callee_clean) \
+
+
+/////////////////////////////////////////////////
+//                                             //
+//              USERCALL INTERNAL              //
+//                                             //
+/////////////////////////////////////////////////
+
+#define __usercall_INTERNAL(callee_clean) \
 	COMMA() \
 	(callee_clean, 0, callee_clean)
 
-#define __userpurge(caller_clean) \
+#define __userpurge_INTERNAL(caller_clean) \
 	COMMA() \
 	(0, caller_clean, caller_clean)
 
+#define __usercall(a) __usercall_INTERNAL(a)
+#define __userpurge(a) __userpurge_INTERNAL(a)
+
 // Function
 
-#define MARTIAL_FN_INTERNAL_2(out, ...) FUNCTION(CAT(EXPAND, out), __VA_ARGS__)
-#define MARTIAL_FN_INTERNAL_3(out, ...) FUNCTION(CAT(TUPLE_GET_SECOND, out), __VA_ARGS__)
+#define MARTIAL_FN_INTERNAL_(...) FUNCTION(CAT(EXPAND, __VA_ARGS__))
 
-#define F(a, ...) \
-	SPLIT_SIZE(VOID_CHECK, a, void) \
+#define MARTIAL_FN_INTERNAL_INTERNAL(a, ...) \
 	SPLIT(OUT, a, IN) \
-	DEFER(CAT)(MARTIAL_FN_INTERNAL_, VOID_CHECK)(OUT, __VA_ARGS__) \
-	UNDEF(VOID_CHECK) \
+	DEFER(MARTIAL_FN_INTERNAL_)(OUT, __VA_ARGS__) \
 	UNDEF(OUT)
+
+
+#define MARTIAL_FN_INTERNAL(a, ...) \
+	__pragma(push_macro("__usercall")) \
+	UNDEF(__usercall) \
+	DEF(__usercall, COMMA() (0, 0, 0)) \
+	MARTIAL_FN_INTERNAL_INTERNAL(a, __VA_ARGS__) \
+	__pragma(pop_macro("__usercall"))
+
+#define F(...) DEFER(MARTIAL_FN_INTERNAL)(__VA_ARGS__)
 
 // Prototype
 
@@ -136,10 +163,19 @@ NEW_LINE() \
 return_type function_name(DEFER(ARGUMENT_LIST)(CAT(EXPAND, arguments))); \
 return_type function_name##_trampoline(DEFER(ARGUMENT_LIST)(CAT(EXPAND, arguments)));
 
-#define P(a, args) \
+#define MARTIAL_P_INTERNAL_(a, args) \
 	SPLIT(OUT, a, IN) \
 	PROTOTYPE(DEFER(CAT)(TUPLE_GET_FIRST, OUT), DEFER(TUPLE_GET_SECOND)(a), args) \
 	UNDEF(OUT)
+
+#define MARTIAL_P_INTERNAL(a, args) \
+	__pragma(push_macro("__usercall")) \
+	UNDEF(__usercall) \
+	DEF(__usercall, __usercall_INTERNAL(0)) \
+	MARTIAL_P_INTERNAL_(a, args) \
+	__pragma(pop_macro("__usercall"))
+
+#define P(...) DEFER(MARTIAL_P_INTERNAL)(__VA_ARGS__)
 
 // ARGUMENTS
 
@@ -341,7 +377,7 @@ DEF(ARGS_SIZE, args)
 
 #define FUNCTION_5(return_type, return_expression, function_name, arguments, body) \
 	PROTOTYPE(return_type, EMPTY##function_name, arguments) \
-	return_type DEFINE_CLEAN##function_name##_trampoline(ARGUMENT_LIST(EXPAND##arguments)) { return_type __asm_hpp_out; __asm { sub ESP, ARGS_SIZE } TRAMPOLINE_LOAD(EXPAND##arguments) __asm { call EMPTY##function_name } __asm { add ESP, CALLER_CLEAN } __asm { mov __asm_hpp_out, return_expression } return __asm_hpp_out; } \
+	return_type DEFINE_CLEAN##function_name##_trampoline(ARGUMENT_LIST(EXPAND##arguments)) { return_type __asm_hpp_out; TRAMPOLINE_LOAD(EXPAND##arguments) __asm { sub ESP, ARGS_SIZE } __asm { call EMPTY##function_name } __asm { add ESP, CALLER_CLEAN } __asm { mov __asm_hpp_out, return_expression } return __asm_hpp_out; } \
 	BEGIN_FUNCTION(return_type, return_expression, EMPTY##function_name, EXPAND##arguments) \
 	DEF(return, RETURN_VALUE) \
 		EXPAND##body \
@@ -351,9 +387,12 @@ DEF(ARGS_SIZE, args)
 	UNDEF(CALLER_CLEAN) \
 	UNDEF(ARGS_SIZE)
 
-#define FUNCTION_3(function_name, arguments, body) \
+#define USERCALL_void USERCALL_void
+
+#define FUNCTION_4(return_type, function_name, arguments, body) \
+	USERCALL_PREPROCESSOR_ASSERT_DEFINED(USERCALL_##return_type, "Expected void. Maybe you forgot the return location.") \
 	PROTOTYPE(void, EMPTY##function_name, arguments) \
-	void DEFINE_CLEAN##function_name##_trampoline(ARGUMENT_LIST(EXPAND##arguments)) { __asm { sub ESP, ARGS_SIZE } TRAMPOLINE_LOAD(EXPAND##arguments) __asm { call EMPTY##function_name } __asm { add ESP, CALLER_CLEAN } } \
+	void DEFINE_CLEAN##function_name##_trampoline(ARGUMENT_LIST(EXPAND##arguments)) { TRAMPOLINE_LOAD(EXPAND##arguments) __asm { sub ESP, ARGS_SIZE } __asm { call EMPTY##function_name } __asm { add ESP, CALLER_CLEAN } } \
 	BEGIN_FUNCTION(void,, EMPTY##function_name, EXPAND##arguments) \
 	DEF(return, RETURN_VOID) \
 		EXPAND##body \

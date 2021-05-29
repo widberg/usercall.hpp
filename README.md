@@ -19,7 +19,7 @@ I originally had this idea while using [microsoft/Detours](https://github.com/mi
 - [X] Terminology consistent with IDA Pro
 - [X] Source code that demonstrates several undocumented tricks available in the [new MSVC preprocessor](https://docs.microsoft.com/en-us/cpp/preprocessor/preprocessor-experimental-overview?view=msvc-160)
 - [ ] Stack arguments
-- [ ] Fix line number shenanigans (kind of expected with this level of abuse of the preprocessor)
+- [ ] Line number shenanigans (kind of expected with this level of abuse of the preprocessor)
 
 ## Install
 
@@ -41,7 +41,7 @@ wget https://raw.githubusercontent.com/widberg/usercall.hpp/master/usercall.hpp
 #include <cstdio>
 #include "usercall.hpp"
 
-P(int IN eax __usercall example, (int arg IN eax, int arg2 IN ebx, int arg3 IN ecx));
+P(int IN eax __usercall(4) example, (int arg IN eax, int arg2 IN ebx, int arg3 IN ecx));
 P(void __usercall example2, ());
 
 int main()
@@ -55,7 +55,7 @@ int main()
     return my_a;
 }
 
-F(int IN eax __usercall example, (int arg IN eax, int arg2 IN ebx, int arg3 IN ecx),
+F(int IN eax __usercall(4) example, (int arg IN eax, int arg2 IN ebx, int arg3 IN ecx),
 (
     printf("arg = %d, arg4 = %d\n", arg, arg3);
     arg = arg + arg3;
@@ -101,7 +101,9 @@ int example_trampoline(int arg, int arg2, int arg3)
     __asm { mov eax, arg }
     __asm { mov ebx, arg2 }
     __asm { mov ecx, arg3 }
+    __asm { sub ESP, 4 }
     __asm { call example }
+    __asm { add ESP, 0 }
     __asm { mov __asm_hpp_out, eax }
     return __asm_hpp_out;
 }
@@ -119,7 +121,7 @@ __declspec(naked) int example(int arg, int arg2, int arg3)
     __asm { push ESI }
     __asm { mov arg, eax }
     __asm { mov arg2, ebx }
-    __asm {mov arg3, ecx}
+    __asm { mov arg3, ecx }
     printf("arg = %d, arg4 = %d\n", arg, arg3);
     arg = arg + arg3;
     printf("arg = %d, arg4 = %d\n", arg, arg3);
@@ -134,13 +136,15 @@ example_return:
     __asm { pop EAX }
     __asm { mov ESP, EBP }
     __asm { pop EBP }
-    __asm {ret 0}
+    __asm { ret 4 }
 }
 
 void example2();
 void example2_trampoline()
 {
+    __asm { sub ESP, 0 }
     __asm { call example2 }
+    __asm { add ESP, 0 }
 }
 
 __declspec(naked) void example2()
@@ -153,7 +157,7 @@ __declspec(naked) void example2()
     __asm { push ECX }
     __asm { push EDI }
     __asm { push EDX }
-    __asm { push ESI}
+    __asm { push ESI }
     printf("void function\n");
     __asm { jmp example2_return }
 example2_return:
