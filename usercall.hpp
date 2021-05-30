@@ -27,7 +27,18 @@
 //                                             //
 /////////////////////////////////////////////////
 
-// Unimplemented: #define USERCALL_HPP_USE_SHORT_NAMES
+#define USERCALL_HPP_USE_SHORT_NAMES
+
+/////////////////////////////////////////////////
+//                                             //
+//               USERCALL PUBLIC               //
+//                                             //
+/////////////////////////////////////////////////
+
+#ifdef USERCALL_HPP_USE_SHORT_NAMES
+#    define F USERCALL_FUNCTION
+#    define P USERCALL_PROTOTYPE
+#endif
 
 /////////////////////////////////////////////////
 //                                             //
@@ -106,7 +117,7 @@ NEW_LINE() \
 
 #define USERCALL_PREPROCESSOR_ASSERT_DEFINED(macro, message) \
 	NEW_LINE() \
-	HASH()ifndef macro \
+	HASH()if !defined(macro) \
 	NEW_LINE() \
 	HASH()error message \
 	NEW_LINE() \
@@ -115,17 +126,35 @@ NEW_LINE() \
 
 /////////////////////////////////////////////////
 //                                             //
-//               USERCALL PUBLIC               //
-//                                             //
-/////////////////////////////////////////////////
-
-
-
-/////////////////////////////////////////////////
-//                                             //
 //              USERCALL INTERNAL              //
 //                                             //
 /////////////////////////////////////////////////
+
+#ifdef _WIN64
+#    define USERCALL_BP RBP
+#    define USERCALL_SP RSP
+#    define USERCALL_AX RAX
+#    define USERCALL_BX RBX
+#    define USERCALL_CX RCX
+#    define USERCALL_DI RDI
+#    define USERCALL_DX RDX
+#    define USERCALL_SI RSI
+#elif _WIN32
+#    define USERCALL_BP EBP
+#    define USERCALL_SP ESP
+#    define USERCALL_AX EAX
+#    define USERCALL_BX EBX
+#    define USERCALL_CX ECX
+#    define USERCALL_DI EDI
+#    define USERCALL_DX EDX
+#    define USERCALL_SI ESI
+#else
+#    error "usercall: unrecognized architecture."
+#endif
+
+#ifndef USERCALL_BACKUP_REGISTER
+#    define USERCALL_BACKUP_REGISTER USERCALL_AX
+#endif
 
 #define __usercall_INTERNAL(callee_clean) \
 	COMMA() \
@@ -147,7 +176,6 @@ NEW_LINE() \
 	DEFER(MARTIAL_FN_INTERNAL_)(OUT, __VA_ARGS__) \
 	UNDEF(OUT)
 
-
 #define MARTIAL_FN_INTERNAL(a, ...) \
 	__pragma(push_macro("__usercall")) \
 	UNDEF(__usercall) \
@@ -155,13 +183,13 @@ NEW_LINE() \
 	MARTIAL_FN_INTERNAL_INTERNAL(a, __VA_ARGS__) \
 	__pragma(pop_macro("__usercall"))
 
-#define F(...) DEFER(MARTIAL_FN_INTERNAL)(__VA_ARGS__)
+#define USERCALL_FUNCTION(...) DEFER(MARTIAL_FN_INTERNAL)(__VA_ARGS__)
 
 // Prototype
 
 #define PROTOTYPE(return_type, function_name, arguments) \
 return_type function_name(DEFER(ARGUMENT_LIST)(CAT(EXPAND, arguments))); \
-return_type function_name##_trampoline(DEFER(ARGUMENT_LIST)(CAT(EXPAND, arguments)));
+return_type __cdecl function_name##_trampoline(DEFER(ARGUMENT_LIST)(CAT(EXPAND, arguments)));
 
 #define MARTIAL_P_INTERNAL_(a, args) \
 	SPLIT(OUT, a, IN) \
@@ -175,7 +203,7 @@ return_type function_name##_trampoline(DEFER(ARGUMENT_LIST)(CAT(EXPAND, argument
 	MARTIAL_P_INTERNAL_(a, args) \
 	__pragma(pop_macro("__usercall"))
 
-#define P(...) DEFER(MARTIAL_P_INTERNAL)(__VA_ARGS__)
+#define USERCALL_PROTOTYPE(...) DEFER(MARTIAL_P_INTERNAL)(__VA_ARGS__)
 
 // ARGUMENTS
 
@@ -188,17 +216,15 @@ return_type function_name##_trampoline(DEFER(ARGUMENT_LIST)(CAT(EXPAND, argument
 #define ARGUMENT_STACK(argument_type_argument_name, argument_offset) \
 	(argument_type_argument_name, \
 	ARGUMENT_NAME, \
-	(__asm { push EAX }; __asm { mov EAX, [EBP + argument_offset] } __asm { mov ARGUMENT_NAME, EAX } __asm { pop EAX }), \
+	(__asm { push USERCALL_BACKUP_REGISTER }; __asm { mov USERCALL_BACKUP_REGISTER, [EBP + argument_offset] } __asm { mov ARGUMENT_NAME, USERCALL_BACKUP_REGISTER } __asm { pop USERCALL_BACKUP_REGISTER }), \
 	(__asm { push ARGUMENT_NAME }))
 
 // ARGUMENT_LIST
 
-#define ARGUMENT_LIST_1_INTERNAL(argument_type_argument_name, ...) argument_type_argument_name
-
 #define ARGUMENT_LIST_0()
 #define ARGUMENT_LIST_1(argument) \
 	ARGUMENT_TUPLE_FROM_STRING(ARGUMENT_TUPLE, argument) \
-	DEFER(CAT)(ARGUMENT_LIST_1_INTERNAL, ARGUMENT_TUPLE) \
+	DEFER(CAT)(TUPLE_GET_FIRST, ARGUMENT_TUPLE) \
 	UNDEF(ARGUMENT_TUPLE)
 #define ARGUMENT_LIST_2(argument, ...) \
 	ARGUMENT_LIST_1(argument), EXPAND(ARGUMENT_LIST_1(__VA_ARGS__))
@@ -287,15 +313,15 @@ return_type function_name##_trampoline(DEFER(ARGUMENT_LIST)(CAT(EXPAND, argument
 	DEF(USERCALL__FUNCTION__, function_name) \
 	DEF(RETURN_LOCATION, return_expression) \
 	__declspec(naked) return_type function_name(ARGUMENT_LIST(__VA_ARGS__)) { \
-	__asm { push EBP } \
-	__asm { mov EBP, ESP } \
-	__asm { sub ESP, __LOCAL_SIZE } \
-	__asm { push EAX } \
-	__asm { push EBX } \
-	__asm { push ECX } \
-	__asm { push EDI } \
-	__asm { push EDX } \
-	__asm { push ESI } \
+	__asm { push USERCALL_BP } \
+	__asm { mov USERCALL_BP, USERCALL_SP } \
+	__asm { sub USERCALL_SP, __LOCAL_SIZE } \
+	__asm { push USERCALL_AX } \
+	__asm { push USERCALL_BX } \
+	__asm { push USERCALL_CX } \
+	__asm { push USERCALL_DI } \
+	__asm { push USERCALL_DX } \
+	__asm { push USERCALL_SI } \
 	ARGUMENT_LOAD(__VA_ARGS__)
 
 // RETURN
@@ -312,14 +338,14 @@ return_type function_name##_trampoline(DEFER(ARGUMENT_LIST)(CAT(EXPAND, argument
 #define END_FUNCTION() \
 DEFER(CAT)(USERCALL__FUNCTION__, _return): \
 UNDEF(USERCALL__FUNCTION__) \
-	__asm { pop ESI } \
-	__asm { pop EDX } \
-	__asm { pop EDI } \
-	__asm { pop ECX } \
-	__asm { pop EBX } \
-	__asm { pop EAX } \
-	__asm { mov ESP, EBP } \
-	__asm { pop EBP } \
+	__asm { pop USERCALL_SI } \
+	__asm { pop USERCALL_DX } \
+	__asm { pop USERCALL_DI } \
+	__asm { pop USERCALL_CX } \
+	__asm { pop USERCALL_BX } \
+	__asm { pop USERCALL_AX } \
+	__asm { mov USERCALL_SP, USERCALL_BP } \
+	__asm { pop USERCALL_BP } \
 	__asm { ret CALLEE_CLEAN } \
 	} \
 	UNDEF(RETURN_LOCATION)
@@ -371,13 +397,13 @@ UNDEF(USERCALL__FUNCTION__) \
 // FUNCTION
 
 #define DEFINE_CLEAN(callee, caller, args) \
-DEF(CALLEE_CLEAN, callee) \
-DEF(CALLER_CLEAN, caller) \
-DEF(ARGS_SIZE, args)
+	DEF(CALLEE_CLEAN, callee) \
+	DEF(CALLER_CLEAN, caller) \
+	DEF(ARGS_SIZE, args)
 
 #define FUNCTION_5(return_type, return_expression, function_name, arguments, body) \
 	PROTOTYPE(return_type, EMPTY##function_name, arguments) \
-	return_type DEFINE_CLEAN##function_name##_trampoline(ARGUMENT_LIST(EXPAND##arguments)) { return_type __asm_hpp_out; TRAMPOLINE_LOAD(EXPAND##arguments) __asm { sub ESP, ARGS_SIZE } __asm { call EMPTY##function_name } __asm { add ESP, CALLER_CLEAN } __asm { mov __asm_hpp_out, return_expression } return __asm_hpp_out; } \
+	return_type __cdecl DEFINE_CLEAN##function_name##_trampoline(ARGUMENT_LIST(EXPAND##arguments)) { return_type __asm_hpp_out; TRAMPOLINE_LOAD(EXPAND##arguments) __asm { sub USERCALL_SP, ARGS_SIZE } __asm { call EMPTY##function_name } __asm { add USERCALL_SP, CALLER_CLEAN } __asm { mov __asm_hpp_out, return_expression } return __asm_hpp_out; } \
 	BEGIN_FUNCTION(return_type, return_expression, EMPTY##function_name, EXPAND##arguments) \
 	DEF(return, RETURN_VALUE) \
 		EXPAND##body \
@@ -392,7 +418,7 @@ DEF(ARGS_SIZE, args)
 #define FUNCTION_4(return_type, function_name, arguments, body) \
 	USERCALL_PREPROCESSOR_ASSERT_DEFINED(USERCALL_##return_type, "Expected void. Maybe you forgot the return location.") \
 	PROTOTYPE(void, EMPTY##function_name, arguments) \
-	void DEFINE_CLEAN##function_name##_trampoline(ARGUMENT_LIST(EXPAND##arguments)) { TRAMPOLINE_LOAD(EXPAND##arguments) __asm { sub ESP, ARGS_SIZE } __asm { call EMPTY##function_name } __asm { add ESP, CALLER_CLEAN } } \
+	void __cdecl DEFINE_CLEAN##function_name##_trampoline(ARGUMENT_LIST(EXPAND##arguments)) { TRAMPOLINE_LOAD(EXPAND##arguments) __asm { sub USERCALL_SP, ARGS_SIZE } __asm { call EMPTY##function_name } __asm { add USERCALL_SP, CALLER_CLEAN } } \
 	BEGIN_FUNCTION(void,, EMPTY##function_name, EXPAND##arguments) \
 	DEF(return, RETURN_VOID) \
 		EXPAND##body \
@@ -402,10 +428,9 @@ DEF(ARGS_SIZE, args)
 	UNDEF(CALLER_CLEAN) \
 	UNDEF(ARGS_SIZE)
 
-#define FUNCTION(...)  EXPAND(DEFER(CAT)(FUNCTION_, GET_ARG_COUNT(__VA_ARGS__))(__VA_ARGS__))
+#define FUNCTION(...) EXPAND(DEFER(CAT)(FUNCTION_, GET_ARG_COUNT(__VA_ARGS__))(__VA_ARGS__))
 
 #define PUSH_ARGUMENT(argument) __asm { push argument }
-
 #define POP_ARGUMENT(argument) __asm { pop argument }
 
 #endif // USERCALL_HPP
