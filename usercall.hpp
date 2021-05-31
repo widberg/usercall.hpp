@@ -115,6 +115,19 @@ NEW_LINE() \
 #define CAT(a, ...) PRIMITIVE_CAT(a, __VA_ARGS__)
 #define PRIMITIVE_CAT(a, ...) a ## __VA_ARGS__
 
+#define USERCALL_MAX(a, b) \
+	NEW_LINE() \
+	HASH()if a > b \
+	NEW_LINE() \
+	a \
+	NEW_LINE() \
+	HASH()else \
+	NEW_LINE() \
+	b \
+	NEW_LINE() \
+	HASH()endif \
+	NEW_LINE()
+
 #define USERCALL_PREPROCESSOR_ASSERT_DEFINED(macro, message) \
 	NEW_LINE() \
 	HASH()if !defined(macro) \
@@ -139,6 +152,7 @@ NEW_LINE() \
 #    define USERCALL_DI RDI
 #    define USERCALL_DX RDX
 #    define USERCALL_SI RSI
+#    define USERCALL_REGISTER_SIZE 8
 #elif _WIN32
 #    define USERCALL_BP EBP
 #    define USERCALL_SP ESP
@@ -148,6 +162,7 @@ NEW_LINE() \
 #    define USERCALL_DI EDI
 #    define USERCALL_DX EDX
 #    define USERCALL_SI ESI
+#    define USERCALL_REGISTER_SIZE 4
 #else
 #    error "usercall: unrecognized architecture."
 #endif
@@ -158,11 +173,13 @@ NEW_LINE() \
 
 #define __usercall_INTERNAL(callee_clean) \
 	COMMA() \
-	(callee_clean, 0, callee_clean)
+	(callee_clean, 0, callee_clean) \
+	COMMA()
 
 #define __userpurge_INTERNAL(caller_clean) \
 	COMMA() \
-	(0, caller_clean, caller_clean)
+	(0, caller_clean, caller_clean) \
+	COMMA()
 
 #define __usercall(a) __usercall_INTERNAL(a)
 #define __userpurge(a) __userpurge_INTERNAL(a)
@@ -179,8 +196,12 @@ NEW_LINE() \
 #define MARTIAL_FN_INTERNAL(a, ...) \
 	__pragma(push_macro("__usercall")) \
 	UNDEF(__usercall) \
-	DEF(__usercall, COMMA() (0, 0, 0)) \
+	DEF(__usercall, __usercall_INTERNAL(0)) \
+	__pragma(push_macro("__userpurge")) \
+	UNDEF(__userpurge) \
+	DEF(__userpurge, __userpurge_INTERNAL(0)) \
 	MARTIAL_FN_INTERNAL_INTERNAL(a, __VA_ARGS__) \
+	__pragma(pop_macro("__userpurge")) \
 	__pragma(pop_macro("__usercall"))
 
 #define USERCALL_FUNCTION(...) DEFER(MARTIAL_FN_INTERNAL)(__VA_ARGS__)
@@ -200,7 +221,11 @@ return_type __cdecl function_name##_trampoline(DEFER(ARGUMENT_LIST)(CAT(EXPAND, 
 	__pragma(push_macro("__usercall")) \
 	UNDEF(__usercall) \
 	DEF(__usercall, __usercall_INTERNAL(0)) \
+	__pragma(push_macro("__userpurge")) \
+	UNDEF(__userpurge) \
+	DEF(__userpurge, __userpurge_INTERNAL(0)) \
 	MARTIAL_P_INTERNAL_(a, args) \
+	__pragma(pop_macro("__userpurge")) \
 	__pragma(pop_macro("__usercall"))
 
 #define USERCALL_PROTOTYPE(...) DEFER(MARTIAL_P_INTERNAL)(__VA_ARGS__)
@@ -401,10 +426,11 @@ UNDEF(USERCALL__FUNCTION__) \
 	DEF(CALLER_CLEAN, caller) \
 	DEF(ARGS_SIZE, args)
 
-#define FUNCTION_5(return_type, return_expression, function_name, arguments, body) \
-	PROTOTYPE(return_type, EMPTY##function_name, arguments) \
-	return_type __cdecl DEFINE_CLEAN##function_name##_trampoline(ARGUMENT_LIST(EXPAND##arguments)) { return_type __asm_hpp_out; TRAMPOLINE_LOAD(EXPAND##arguments) __asm { sub USERCALL_SP, ARGS_SIZE } __asm { call EMPTY##function_name } __asm { add USERCALL_SP, CALLER_CLEAN } __asm { mov __asm_hpp_out, return_expression } return __asm_hpp_out; } \
-	BEGIN_FUNCTION(return_type, return_expression, EMPTY##function_name, EXPAND##arguments) \
+#define FUNCTION_6(return_type, return_expression, clean, function_name, arguments, body) \
+	PROTOTYPE(return_type, function_name, arguments) \
+	DEFINE_CLEAN##clean \
+	return_type __cdecl function_name##_trampoline(ARGUMENT_LIST(EXPAND##arguments)) { return_type __asm_hpp_out; TRAMPOLINE_LOAD(EXPAND##arguments) __asm { sub USERCALL_SP, ARGS_SIZE } __asm { call function_name } __asm { add USERCALL_SP, CALLER_CLEAN } __asm { mov __asm_hpp_out, return_expression } return __asm_hpp_out; } \
+	BEGIN_FUNCTION(return_type, return_expression, function_name, EXPAND##arguments) \
 	DEF(return, RETURN_VALUE) \
 		EXPAND##body \
 	END_FUNCTION() \
@@ -415,11 +441,12 @@ UNDEF(USERCALL__FUNCTION__) \
 
 #define USERCALL_void USERCALL_void
 
-#define FUNCTION_4(return_type, function_name, arguments, body) \
+#define FUNCTION_5(return_type, clean, function_name, arguments, body) \
 	USERCALL_PREPROCESSOR_ASSERT_DEFINED(USERCALL_##return_type, "Expected void. Maybe you forgot the return location.") \
-	PROTOTYPE(void, EMPTY##function_name, arguments) \
-	void __cdecl DEFINE_CLEAN##function_name##_trampoline(ARGUMENT_LIST(EXPAND##arguments)) { TRAMPOLINE_LOAD(EXPAND##arguments) __asm { sub USERCALL_SP, ARGS_SIZE } __asm { call EMPTY##function_name } __asm { add USERCALL_SP, CALLER_CLEAN } } \
-	BEGIN_FUNCTION(void,, EMPTY##function_name, EXPAND##arguments) \
+	PROTOTYPE(void, function_name, arguments) \
+	DEFINE_CLEAN##clean \
+	void __cdecl function_name##_trampoline(ARGUMENT_LIST(EXPAND##arguments)) { TRAMPOLINE_LOAD(EXPAND##arguments) __asm { sub USERCALL_SP, ARGS_SIZE } __asm { call function_name } __asm { add USERCALL_SP, CALLER_CLEAN } } \
+	BEGIN_FUNCTION(void,, function_name, EXPAND##arguments) \
 	DEF(return, RETURN_VOID) \
 		EXPAND##body \
 	END_FUNCTION() \

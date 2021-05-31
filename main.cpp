@@ -23,7 +23,7 @@ int main()
 	int my_a = 1;
 	int my_b = 3;
 	printf("a = %d, b = %d\n", my_a, my_b);
-	example_trampoline(my_a, 0, my_b);
+	my_a = example_trampoline(my_a, 0, my_b);
 	printf("a = %d, b = %d\n", my_a, my_b);
 	example2_trampoline();
 	return my_a;
