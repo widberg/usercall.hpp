@@ -123,7 +123,7 @@ USERCALL__FUNCTION__
 
 ## Options
 
-Enable an option by defining it somewhere before including `usercall.hpp` or uncomment it in the "CONFIGURATION OPTIONS" section of your copy of the header. All options are disabled by default.
+Enable an option by defining it somewhere before including `usercall.hpp`, uncomment it in the "CONFIGURATION OPTIONS" section of your copy of the header, or configure `usercall.hpp` with CMake. All options are disabled by default.
 
 ## USERCALL_HPP_USE_SHORT_NAMES
 
