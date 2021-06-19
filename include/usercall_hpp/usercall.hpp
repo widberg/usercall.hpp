@@ -18,8 +18,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef USERCALL_HPP
-#define USERCALL_HPP
+#ifndef _USERCALL_INTERNAL_USERCALL_HPP
+#define _USERCALL_INTERNAL_USERCALL_HPP
 
 // #include <intrin.h> // MSVC Visual C++ compiler intrinsics
 
@@ -980,4 +980,4 @@ inline typename std::enable_if<sizeof(T) <= sizeof(F), T>::type __coerce(F f)
 #define ADJ(p) (__parentof(p) *)(p-__deltaof(p))
 #endif // USERCALL_HPP_USE_HEXRAYS_DEFS
 
-#endif // USERCALL_HPP
+#endif // _USERCALL_INTERNAL_USERCALL_HPP

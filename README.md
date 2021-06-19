@@ -33,11 +33,13 @@ I add features when I need them; there is no development plan.
 curl https://raw.githubusercontent.com/widberg/usercall.hpp/master/include/usercall_hpp/usercall.hpp
 ```
 
+or use CMake
+
 ## Example
 
 ```cpp
 #include <cstdio>
-#include "usercall.hpp"
+#include <usercall_hpp/usercall.hpp>
 
 AP(int __usercall example AT eax)(int arg AT eax, int arg2 AT ebx, int arg3 AT ecx);
 AP(void __usercall example2)();
