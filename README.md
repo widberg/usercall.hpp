@@ -20,7 +20,7 @@ I originally had this idea while using [microsoft/Detours](https://github.com/mi
 - [X] Syntax that closely mirrors the standard MSVC Visual C++ function and IDA Pro hex-rays decompiler syntax
 - [X] IDA Pro types and macros
 - [X] Source code that demonstrates several undocumented tricks available in the [new MSVC preprocessor](https://docs.microsoft.com/en-us/cpp/preprocessor/preprocessor-experimental-overview?view=msvc-160)
-- [ ] Stack return values
+- [ ] Stack return values (get around this with hidden arguments and inline assembly)
 - [ ] Structure return values
 - [ ] Variadic functions
 - [ ] Argument type decorations (get around this with the `using` or `typedef` keywords)
@@ -42,7 +42,7 @@ or use CMake
 #include <cstdio>
 #include <usercall_hpp/usercall.hpp>
 
-AP(int __usercall example AT eax)(int arg AT eax, int arg2 AT ebx, int arg3 AT ecx);
+AP(unsigned __int32 __usercall example AT eax)(__int32 arg AT eax, __int32 arg2 AT ebx, __int32 arg3);
 AP(void __usercall example2)();
 
 int main()
@@ -56,7 +56,7 @@ int main()
     return my_a;
 }
 
-AF(int __usercall example AT eax)(int arg AT eax, int arg2 AT ebx, int arg3 AT ecx)
+AF(unsigned __int32 __usercall example AT eax)(__int32 arg AT eax, __int32 arg2 AT ebx, __int32 arg3)
 (
     printf("arg = %d, arg4 = %d\n", arg, arg3);
     arg = arg + arg3;
@@ -77,13 +77,13 @@ AF(void __usercall example2)()
 
 **NEVER** call a `__usercall/__userpurge` function with the standard C++ function call syntax. You **MUST** use a trampoline or an inline assembly block to call these functions from C++ if you don't want a mess of runtime corruption errors. `__usercall/__userpurge` function can safely be passed to detours. You only need to generate a trampoline for `__usercall/__userpurge` functions that you intend to call from C++.
 
-One annoying bug is if an arguments type is not exactly one identifier then `usercall.hpp` trips over itself until the preprocessor puts it out of its misery. A work around to this is to use the `using` or `typedef` keywords to make a single identifier type. Ex. `unsigned int arg` does not work but `using arg_type_t = unsigned int;` and `arg_type_t arg` works. This issue extends to pointer types. I am working to find a solution to this.
+One annoying bug is if an argument's type is not exactly one identifier then `usercall.hpp` trips over itself until the preprocessor puts it out of its misery. A work around to this is to use the `using` or `typedef` keywords to make a single identifier type. Ex. `unsigned int arg` does not work but `using arg_type_t = unsigned int;` and `arg_type_t arg` works. This issue extends to pointer types. I am working to find a solution to this.
 
 This library will destroy the line number accuracy in error messages. This is due to a combination of bugs in MSVC; I cannot fix this. To minimize the effect of this "feature" I recommend testing your `__usercall/__userpurge` functions in their own individual files before merging them all into one file to minimize the guesswork of which function is causing the error.
 
 Consider any identifier starting with `_USERCALL_INTERNAL_` or `_usercall_internal_` to be reserved.
 
-## Api
+## API
 
 ```cpp
 // Define a function
@@ -117,6 +117,13 @@ USERCALL_POINTER_TO_FUNCTION(return_type __usercall/__userpurge * name AT reg)(t
 // Declare a pointer to a function
 USERCALL_POINTER_TO_FUNCTION_PROTOTYPE(return_type __usercall/__userpurge * name AT reg)(type name AT reg, ..., type name, ...);
 
+// Define a pointer to a function and its trampoline
+USERCALL_POINTER_TO_FUNCTION_AND_TRAMPOLINE(return_type __usercall/__userpurge name AT reg)(type name AT reg, ..., type name, ...)
+    (expression);
+
+// Declare a pointer to a function and its trampoline
+USERCALL_POINTER_TO_FUNCTION_AND_TRAMPOLINE_PROTOTYPE(return_type __usercall/__userpurge name AT reg)(type name AT reg, ..., type name, ...);
+
 // Return value (Only available in non-void __usercall/__userpurge functions)
 RETURN(expression);
 
@@ -133,7 +140,7 @@ Enable an option by defining it somewhere before including `usercall.hpp`, uncom
 
 ## USERCALL_HPP_USE_SHORT_NAMES
 
-This option provides shortened aliases for the Api macros. Each one matches the pattern `UC[FTAP][FP]`.
+This option provides shortened aliases for the Api macros. Each one matches the pattern `UC[FTAPB][FP]`.
 
 ```cpp
 #ifdef USERCALL_HPP_USE_SHORT_NAMES
@@ -145,6 +152,8 @@ This option provides shortened aliases for the Api macros. Each one matches the 
 #    define UCAP USERCALL_FUNCTION_AND_TRAMPOLINE_PROTOTYPE // And Prototype
 #    define UCPF USERCALL_POINTER_TO_FUNCTION // Pointer Function
 #    define UCPP USERCALL_POINTER_TO_FUNCTION_PROTOTYPE // Pointer Prototype
+#    define UCBF USERCALL_POINTER_TO_FUNCTION_AND_TRAMPOLINE // B Function
+#    define UCBP USERCALL_POINTER_TO_FUNCTION_AND_TRAMPOLINE_PROTOTYPE // B Prototype
 #endif
 ```
 
