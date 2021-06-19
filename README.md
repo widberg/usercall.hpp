@@ -72,9 +72,7 @@ AF(void __usercall example2)()
 
 ## Documentation
 
-### Notes
-
----
+## Notes
 
 **NEVER** call a `__usercall/__userpurge` function with the standard C++ function call syntax. You **MUST** use a trampoline or an inline assembly block to call these functions from C++ if you don't want a mess of runtime corruption errors. `__usercall/__userpurge` function can safely be passed to detours. You only need to generate a trampoline for `__usercall/__userpurge` functions that you intend to call from C++.
 
@@ -82,9 +80,7 @@ One annoying bug is if an arguments type is not exactly an identifier then `user
 
 This library will destroy the line number accuracy in error messages. This is due to a combination of bugs in MSVC and I cannot fix this. To minimize the effect of this "feature" I recommend testing your `__usercall/__userpurge` functions in their own individual files before merging them all into one file to minimize the guesswork of which function is causing the error.
 
-### Api
-
----
+## Api
 
 ```cpp
 // Define a function
@@ -125,15 +121,11 @@ RETURN;
 USERCALL__FUNCTION__
 ```
 
-### Options
-
----
+## Options
 
 Enable an option by defining it somewhere before including `usercall.hpp` or uncomment it in the "CONFIGURATION OPTIONS" section of your copy of the header. All options are disabled by default.
 
-#### USERCALL_HPP_USE_SHORT_NAMES
-
----
+## USERCALL_HPP_USE_SHORT_NAMES
 
 This option provides shortened aliases for the Api macros. Each one matches the pattern `UC[FTAP][FP]`.
 
@@ -150,21 +142,15 @@ This option provides shortened aliases for the Api macros. Each one matches the 
 #endif
 ```
 
-#### USERCALL_HPP_CHECK_RETURN
-
----
+## USERCALL_HPP_CHECK_RETURN
 
 This option will cause a compiler error to occur when you use the `return` keyword instead of the `RETURN` macro in a `__usercall/__userpurge` function. This is disabled by default because defining a macro with the same identifier as a C++ keyword is evil but this is a good check to have for your sanity and it has no effect outside of `__usercall/__userpurge` functions.
 
-#### USERCALL_HPP_USE_HEXRAYS_DEFS
-
----
+## USERCALL_HPP_USE_HEXRAYS_DEFS
 
 This option will make `usercall.hpp` define the types and macros used by hex-ray's IDA Pro. Copied with attribution from the `defs.h` file in the IDA SDK.
 
-#### USERCALL_HPP_USE_REALLY_SHORT_NAMES
-
----
+## USERCALL_HPP_USE_REALLY_SHORT_NAMES
 
 This option does the same thing as `USERCALL_HPP_USE_SHORT_NAMES` except without the `UC` prefix. I do not recommend using this option because it may cause name collisions that are hard to debug.
 
