@@ -98,7 +98,7 @@ USERCALL_FUNCTION_PROTOTYPE(return_type __usercall/__userpurge name AT reg)(type
 // Define a trampoline, <name>_trampoline, for name
 USERCALL_TRAMPOLINE(return_type __usercall/__userpurge name AT reg)(type name AT reg, ..., type name, ...);
 
-// Declare a trampoline,  <name>_trampoline
+// Declare a trampoline, <name>_trampoline
 USERCALL_TRAMPOLINE_PROTOTYPE(return_type __usercall/__userpurge name AT reg)(type name AT reg, ..., type name, ...);
 
 // Define a function and its trampoline
@@ -106,6 +106,9 @@ USERCALL_FUNCTION_AND_TRAMPOLINE(return_type __usercall/__userpurge name AT reg)
 (
     body
 )
+
+// Declare a function and its trampoline
+USERCALL_FUNCTION_AND_TRAMPOLINE_PROTOTYPE(return_type __usercall/__userpurge name AT reg)(type name AT reg, ..., type name, ...);
 
 // Define a pointer to a function
 USERCALL_POINTER_TO_FUNCTION(return_type __usercall/__userpurge * name AT reg)(type name AT reg, ..., type name, ...)
