@@ -21,6 +21,7 @@ I originally had this idea while using [microsoft/Detours](https://github.com/mi
 - [X] IDA Pro types and macros
 - [X] Source code that demonstrates several undocumented tricks available in the [new MSVC preprocessor](https://docs.microsoft.com/en-us/cpp/preprocessor/preprocessor-experimental-overview?view=msvc-160)
 - [ ] Stack return values
+- [ ] Structure return values
 - [ ] Variadic functions
 - [ ] Argument type decorations (get around this with the `using` or `typedef` keywords)
 - [X] Annoying line number shenanigans (kind of expected with this level of abuse of the preprocessor)
