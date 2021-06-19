@@ -81,6 +81,8 @@ One annoying bug is if an argument's type is not exactly one identifier then `us
 
 This library will destroy the line number accuracy in error messages. This is due to a combination of bugs in MSVC; I cannot fix this. To minimize the effect of this "feature" I recommend testing your `__usercall/__userpurge` functions in their own individual files before merging them all into one file to minimize the guesswork of which function is causing the error.
 
+Defining two different `__usercall/__userpurge` functions with the same name is undefined behavior. In most cases it will work but I recommend making separate functions rather than overloading one name.
+
 Consider any identifier starting with `_USERCALL_INTERNAL_` or `_usercall_internal_` to be reserved.
 
 ## API
