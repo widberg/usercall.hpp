@@ -10,17 +10,15 @@ I originally had this idea while using [microsoft/Detours](https://github.com/mi
 
 - [X] `__usercall`
 - [X] `__userpurge`
+- [X] Auto-generated trampoline functions to call `__usercall/__userpurge` functions from a `__cdecl` interface
 - [X] Register arguments
 - [X] Stack arguments
 - [X] Register return values
-- [X] Auto-generated trampoline functions to call `__usercall/__userpurge` functions from a `__cdecl` interface
-- [X] Value functions with explicit return location
 - [X] `void` functions
 - [X] Prototypes
 - [X] Pointer-to-function
-- [X] Syntax that closely mirrors standard MSVC Visual C++ function syntax
+- [X] Syntax that closely mirrors the standard MSVC Visual C++ function and IDA Pro hex-rays decompiler syntax
 - [X] IDA Pro types and macros
-- [X] Terminology consistent with IDA Pro
 - [X] Source code that demonstrates several undocumented tricks available in the [new MSVC preprocessor](https://docs.microsoft.com/en-us/cpp/preprocessor/preprocessor-experimental-overview?view=msvc-160)
 - [ ] Stack return values
 - [ ] Variadic functions
@@ -32,7 +30,7 @@ I add features when I need them; there is no development plan.
 ## Install
 
 ```sh
-curl https://raw.githubusercontent.com/widberg/usercall.hpp/master/usercall.hpp
+curl https://raw.githubusercontent.com/widberg/usercall.hpp/master/include/usercall_hpp/usercall.hpp
 ```
 
 ## Example
@@ -148,7 +146,7 @@ This option will cause a compiler error to occur when you use the `return` keywo
 
 ## USERCALL_HPP_USE_HEXRAYS_DEFS
 
-This option will make `usercall.hpp` define the types and macros used by hex-ray's IDA Pro. Copied with attribution from the `defs.h` file in the IDA SDK.
+This option will make `usercall.hpp` define the types and macros used by hex-rays's IDA Pro. Copied with attribution from the `defs.h` file in the IDA SDK.
 
 ## USERCALL_HPP_USE_REALLY_SHORT_NAMES
 
