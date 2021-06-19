@@ -1,6 +1,6 @@
 #include <cstdio>
-#define USERCALL_HPP_USE_SHORT_NAMES
 #define USERCALL_HPP_USE_HEXRAYS_DEFS
+#define USERCALL_HPP_CHECK_RETURN
 #define USERCALL_HPP_USE_REALLY_SHORT_NAMES
 #include "usercall.hpp"
 

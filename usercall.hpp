@@ -256,11 +256,29 @@ NEW_LINE() \
 #    define USERCALL_REGISTER_SIZE 4
 #else
 #    error "usercall: unrecognized architecture."
-#endif
+#endif // _WIN64
 
 #ifndef USERCALL_BACKUP_REGISTER
 #    define USERCALL_BACKUP_REGISTER USERCALL_AX
-#endif
+#endif // USERCALL_BACKUP_REGISTER
+
+#ifdef USERCALL_HPP_CHECK_RETURN
+
+#define USERCALL_CHECK_RETURN_INIT() \
+	__pragma(push_macro("return")) \
+	DEF(return, usercall_return_detected_in_usercall_userpurge_function_try_using_the_RETURN_macro_instead)
+
+#define USERCALL_CHECK_RETURN_DEINIT() \
+	UNDEF(return) \
+	DEF(return, return) \
+	__pragma(pop_macro("return"))
+
+#else
+
+#define USERCALL_CHECK_RETURN_INIT()
+#define USERCALL_CHECK_RETURN_DEINIT()
+
+#endif // USERCALL_HPP_CHECK_RETURN
 
 /////////////////////////
 // Pointer to Function //
@@ -486,8 +504,8 @@ NEW_LINE() \
 #define FUNCTION_BUILDER(configuration, arguments, body) \
 	DEFER(USERCALL_IS_VOID_FUNCTION)(USERCALL_IS_VOID_OUT, configuration) \
 	SELECT(USERCALL_IS_VOID_OUT, \
-		DEF(RETURN, USERCALL_RETURN_VOID) DEF(RETURN_LOCATION, ), \
-		DEF(RETURN, USERCALL_RETURN_VALUE) DEF(RETURN_LOCATION, DEFER(CAT)(TUPLE_GET_FOURTH, configuration))) \
+		DEF(RETURN, USERCALL_RETURN_VOID) DEF(RETURN_LOCATION, ) DEF(RETURN_TYPE, ), \
+		DEF(RETURN, USERCALL_RETURN_VALUE) DEF(RETURN_LOCATION, DEFER(CAT)(TUPLE_GET_FOURTH, configuration)) DEF(RETURN_TYPE, DEFER(CAT)(TUPLE_GET_FIRST, configuration))) \
 	UNDEF(USERCALL_IS_VOID_OUT) \
 	DEFER(DEF)(USERCALL__FUNCTION__, DEFER(CAT)(TUPLE_GET_THIRD, configuration)) \
 	FUNCTION_SIGNATURE_BUILDER(configuration, arguments) \
@@ -503,6 +521,7 @@ NEW_LINE() \
 	} \
 	UNDEF(USERCALL__FUNCTION__) \
 	UNDEF(RETURN_LOCATION) \
+	UNDEF(RETURN_TYPE) \
 	UNDEF(RETURN)
 
 ////////////////////
@@ -518,7 +537,8 @@ NEW_LINE() \
 	__asm { pop USERCALL_CX } \
 	__asm { pop USERCALL_BX } \
 	__asm { pop USERCALL_AX } \
-	__asm { mov RETURN_LOCATION, return_expression } \
+	RETURN_TYPE _usercall_internal_return_ = return_expression; \
+	__asm { mov RETURN_LOCATION, _usercall_internal_return_ } \
 	return
 
 #define USERCALL_RETURN_VOID \

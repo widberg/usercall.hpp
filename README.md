@@ -38,6 +38,36 @@ curl https://raw.githubusercontent.com/widberg/usercall.hpp/master/usercall.hpp
 ## Example
 
 ```cpp
+#include <cstdio>
+#include "usercall.hpp"
+
+AP(int __usercall example AT eax)(int arg AT eax, int arg2 AT ebx, int arg3 AT ecx);
+AP(void __usercall example2)();
+
+int main()
+{
+    int my_a = 1;
+    int my_b = 3;
+    printf("a = %d, b = %d\n", my_a, my_b);
+    my_a = example_trampoline(my_a, 0, my_b);
+    printf("a = %d, b = %d\n", my_a, my_b);
+    example2_trampoline();
+    return my_a;
+}
+
+AF(int __usercall example AT eax)(int arg AT eax, int arg2 AT ebx, int arg3 AT ecx)
+(
+    printf("arg = %d, arg4 = %d\n", arg, arg3);
+    arg = arg + arg3;
+    printf("arg = %d, arg4 = %d\n", arg, arg3);
+    RETURN(arg);
+)
+
+AF(void __usercall example2)()
+(
+    printf("void function\n");
+    RETURN;
+)
 ```
 
 ## Documentation
@@ -82,7 +112,7 @@ USERCALL_POINTER_TO_FUNCTION(return_type __usercall/__userpurge name AT reg)(typ
 USERCALL_POINTER_TO_FUNCTION_PROTOTYPE(return_type __usercall/__userpurge name AT reg)(type name AT reg, ..., type name, ...);
 
 // Return value (Only available in non-void __usercall/__userpurge functions)
-RETURN(identifier);
+RETURN(expression);
 
 // Return void (Only available in void __usercall/__userpurge functions)
 RETURN;
