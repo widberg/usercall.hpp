@@ -78,6 +78,8 @@ One annoying bug is if an arguments type is not exactly an identifier then `user
 
 This library will destroy the line number accuracy in error messages. This is due to a combination of bugs in MSVC and I cannot fix this. To minimize the effect of this "feature" I recommend testing your `__usercall/__userpurge` functions in their own individual files before merging them all into one file to minimize the guesswork of which function is causing the error.
 
+Consider any identifier starting with `_USERCALL_INTERNAL_` or `_usercall_internal_` to be reserved.
+
 ## Api
 
 ```cpp
@@ -103,11 +105,11 @@ USERCALL_FUNCTION_AND_TRAMPOLINE(return_type __usercall/__userpurge name AT reg)
 )
 
 // Define a pointer to a function
-USERCALL_POINTER_TO_FUNCTION(return_type __usercall/__userpurge name AT reg)(type name AT reg, ..., type name, ...)
+USERCALL_POINTER_TO_FUNCTION(return_type __usercall/__userpurge * name AT reg)(type name AT reg, ..., type name, ...)
     (expression);
 
 // Declare a pointer to a function
-USERCALL_POINTER_TO_FUNCTION_PROTOTYPE(return_type __usercall/__userpurge name AT reg)(type name AT reg, ..., type name, ...);
+USERCALL_POINTER_TO_FUNCTION_PROTOTYPE(return_type __usercall/__userpurge * name AT reg)(type name AT reg, ..., type name, ...);
 
 // Return value (Only available in non-void __usercall/__userpurge functions)
 RETURN(expression);
@@ -142,7 +144,7 @@ This option provides shortened aliases for the Api macros. Each one matches the 
 
 ## USERCALL_HPP_CHECK_RETURN
 
-This option will cause a compiler error to occur when you use the `return` keyword instead of the `RETURN` macro in a `__usercall/__userpurge` function. This is disabled by default because defining a macro with the same identifier as a C++ keyword is evil but this is a good check to have for your sanity and it has no effect outside of `__usercall/__userpurge` functions.
+This option will cause a compiler error, `error C2065: '_usercall_internal_return_detected_in_usercall_userpurge_function_try_using_the_RETURN_macro_instead': undeclared identifier`, to occur when you use the `return` keyword instead of the `RETURN` macro in a `__usercall/__userpurge` function. This is disabled by default because defining a macro with the same identifier as a C++ keyword is evil but this is a good check to have for your sanity and it has no effect outside of `__usercall/__userpurge` functions.
 
 ## USERCALL_HPP_USE_HEXRAYS_DEFS
 
