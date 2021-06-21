@@ -75,7 +75,7 @@ AF(void __usercall example2)()
 
 ## Notes
 
-**NEVER** call a `__usercall/__userpurge` function with the standard C++ function call syntax. You **MUST** use a trampoline or an inline assembly block to call these functions from C++ if you don't want a mess of runtime corruption errors. `__usercall/__userpurge` function can safely be passed to detours. You only need to generate a trampoline for `__usercall/__userpurge` functions that you intend to call from C++.
+**NEVER** call a `__usercall/__userpurge` function with the standard C++ function call syntax. You **MUST** use a trampoline or an inline assembly block to call these functions from C++ if you don't want a mess of runtime corruption errors. `__usercall/__userpurge` functions can safely be passed to Detours. You only need to generate a trampoline for `__usercall/__userpurge` functions that you intend to call from C++.
 
 One annoying bug is if an argument's type is not exactly one identifier then `usercall.hpp` trips over itself until the preprocessor puts it out of its misery. A work around to this is to use the `using` or `typedef` keywords to make a single identifier type. Ex. `unsigned int arg` does not work but `using arg_type_t = unsigned int;` and `arg_type_t arg` works. This issue extends to pointer types. I am working to find a solution to this.
 
