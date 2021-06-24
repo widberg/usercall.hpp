@@ -1,0 +1,7 @@
+{
+	"files.associations": {
+		"*.tsc": "java",
+		"*.json": "json",
+		"cstdio": "cpp"
+	}
+}

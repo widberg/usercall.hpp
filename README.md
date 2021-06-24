@@ -12,7 +12,7 @@ I originally had this idea while using [microsoft/Detours](https://github.com/mi
 - [X] `__userpurge`
 - [X] Auto-generated trampoline functions to call `__usercall/__userpurge` functions from a `__cdecl` interface
 - [X] Register arguments
-- [ ] Stack arguments (broken in latest)
+- [X] Stack arguments
 - [X] Register return values
 - [X] `void` functions
 - [X] Prototypes
