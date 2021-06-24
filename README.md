@@ -12,7 +12,7 @@ I originally had this idea while using [microsoft/Detours](https://github.com/mi
 - [X] `__userpurge`
 - [X] Auto-generated trampoline functions to call `__usercall/__userpurge` functions from a `__cdecl` interface
 - [X] Register arguments
-- [X] Stack arguments
+- [ ] Stack arguments (broken in latest)
 - [X] Register return values
 - [X] `void` functions
 - [X] Prototypes
@@ -47,20 +47,20 @@ AP(void __usercall example2)();
 
 int main()
 {
-    int my_a = 1;
-    int my_b = 3;
-    printf("a = %d, b = %d\n", my_a, my_b);
-    my_a = example_trampoline(my_a, 0, my_b);
-    printf("a = %d, b = %d\n", my_a, my_b);
+    int a = 1;
+    int b = 3;
+    printf("a = %d, b = %d\n", a, b);
+    a = example_trampoline(a, 0, b);
+    printf("a = %d, b = %d\n", a, b);
     example2_trampoline();
-    return my_a;
+    return a;
 }
 
 AF(unsigned __int32 __usercall example AT eax)(__int32 arg AT eax, __int32 arg2 AT ebx, __int32 arg3)
 (
-    printf("arg = %d, arg4 = %d\n", arg, arg3);
+    printf("arg = %d, arg3 = %d\n", arg, arg3);
     arg = arg + arg3;
-    printf("arg = %d, arg4 = %d\n", arg, arg3);
+    printf("arg = %d, arg3 = %d\n", arg, arg3);
     RETURN(arg);
 )
 
