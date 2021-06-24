@@ -575,6 +575,15 @@ _USERCALL_INTERNAL_NEW_LINE() \
 	__asm { push _USERCALL_INTERNAL_SI } \
 	_USERCALL_INTERNAL_CAT(_USERCALL_INTERNAL_FUNCTION_ARGUMENT_LOAD_BUILDER, arguments) \
 	_USERCALL_INTERNAL_CAT(_USERCALL_INTERNAL_EXPAND, body) \
+	__pragma(warning(push)) \
+	__pragma(warning(disable:4702)) \
+	__asm { pop _USERCALL_INTERNAL_SI } \
+	__asm { pop _USERCALL_INTERNAL_DX } \
+	__asm { pop _USERCALL_INTERNAL_DI } \
+	__asm { pop _USERCALL_INTERNAL_CX } \
+	__asm { pop _USERCALL_INTERNAL_BX } \
+	__asm { pop _USERCALL_INTERNAL_AX } \
+	__pragma(warning(pop)) \
 	} \
 	_USERCALL_INTERNAL_UNDEF(_USERCALL_INTERNAL__FUNCTION__) \
 	_USERCALL_INTERNAL_CHECK_RETURN_DEINIT() \
