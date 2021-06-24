@@ -173,10 +173,14 @@ This option does the same thing as `USERCALL_HPP_USE_SHORT_NAMES` except without
 
 ## FAQ
 
+### Something isn't working
+
+Make sure your Visual Studio toolchain is up to date and you are using the most recent commit. If it still doesn't work then open an issue.
+
 ### Wouldn't It Have Been Easier to Use Python/AWK/Perl?
 
 Yes.
 
-### Is It Possible to Write a C Compiler in the new MSVC Preprocessor
+### Is It Possible to Write a C Compiler in the new MSVC Preprocessor?
 
 Probably.
