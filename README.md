@@ -77,11 +77,11 @@ AF(void __usercall example2)()
 
 **NEVER** call a `__usercall/__userpurge` function with the standard C++ function call syntax. You **MUST** use a trampoline or an inline assembly block to call these functions from C++ if you don't want a mess of runtime corruption errors. `__usercall/__userpurge` functions can safely be passed to Detours. You only need to generate a trampoline for `__usercall/__userpurge` functions that you intend to call from C++.
 
-One annoying bug is if an argument's type is not exactly one identifier then `usercall.hpp` trips over itself until the preprocessor puts it out of its misery. A work around to this is to use the `using` or `typedef` keywords to make a single identifier type. Ex. `unsigned int arg` does not work but `using arg_type_t = unsigned int;` and `arg_type_t arg` works. This issue extends to pointer types. I am working to find a solution to this.
+One annoying bug is if an argument's type is not exactly one identifier then `usercall.hpp` trips over itself until the preprocessor puts it out of its misery. A work around to this is to use the `using` or `typedef` keywords to make a single identifier type. Ex. `unsigned int arg` does not work but `using arg_type_t = unsigned int;` and `arg_type_t arg` works. This issue extends to pointer types, i.e. ‘void*‘ will not work but ‘LPVOID‘ will. This issue is not present for function return types. I am working to find a solution to this.
 
 This library will destroy the line number accuracy in error messages. This is due to a combination of bugs in MSVC; I cannot fix this. To minimize the effect of this "feature" I recommend testing your `__usercall/__userpurge` functions in their own individual files before merging them all into one file to minimize the guesswork of which function is causing the error.
 
-Defining two different `__usercall/__userpurge` functions with the same name is undefined behavior. In most cases it will work but I recommend making separate functions rather than overloading one name.
+Defining two different `__usercall/__userpurge` functions with the same name but different arguments is undefined behavior. In most cases it will work but I recommend making separate functions rather than overloading one name.
 
 Consider any identifier starting with `_USERCALL_INTERNAL_` or `_usercall_internal_` to be reserved.
 
@@ -129,7 +129,7 @@ USERCALL_POINTER_TO_FUNCTION_AND_TRAMPOLINE_PROTOTYPE(return_type __usercall/__u
 // Return value (Only available in non-void __usercall/__userpurge functions)
 RETURN(expression);
 
-// Return void (Only available in void __usercall/__userpurge functions)
+// Return void (Optional like normal return in a void function) (Only available in void __usercall/__userpurge functions)
 RETURN;
 
 // The name component of the current __usercall/__userpurge function signature (as an identifier) (Only available in __usercall/__userpurge functions)
