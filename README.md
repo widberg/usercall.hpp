@@ -20,13 +20,13 @@ I originally had this idea while using [microsoft/Detours](https://github.com/mi
 - [X] Syntax that closely mirrors the standard MSVC Visual C++ function and IDA Pro hex-rays decompiler syntax
 - [X] IDA Pro types and macros
 - [X] Source code that demonstrates several undocumented tricks available in the [new MSVC preprocessor](https://docs.microsoft.com/en-us/cpp/preprocessor/preprocessor-experimental-overview?view=msvc-160)
-- [ ] Stack return values (get around this with hidden arguments and inline assembly)
+- [ ] Stack return values
 - [ ] Structure return values
 - [ ] Variadic functions
 - [ ] Argument type decorations (get around this with the `using` or `typedef` keywords)
 - [X] Annoying line number shenanigans (kind of expected with this level of abuse of the preprocessor)
 
-I add features when I need them; there is no development plan.
+I add features when I need them; there is no development plan. Pull requests and issues welcome.
 
 ## Install
 
@@ -79,7 +79,7 @@ AF(void __usercall example2)()
 
 One annoying bug is if an argument's type is not exactly one identifier then `usercall.hpp` trips over itself until the preprocessor puts it out of its misery. A work around to this is to use the `using` or `typedef` keywords to make a single identifier type. Ex. `unsigned int arg` does not work but `using arg_type_t = unsigned int;` and `arg_type_t arg` works. This issue extends to pointer types, i.e. `void*` will not work but `LPVOID` will. This issue is not present for function return types. I am working to find a solution to this.
 
-This library will destroy the line number accuracy in error messages. This is due to a combination of bugs in MSVC; I cannot fix this. To minimize the effect of this "feature" I recommend testing your `__usercall/__userpurge` functions in their own individual files before merging them all into one file to minimize the guesswork of which function is causing the error.
+This library will destroy the line number accuracy in error messages. This is due to a combination of bugs in MSVC; I cannot fix this. To minimize the effect of this "feature" I recommend testing your `__usercall/__userpurge` functions in their own individual files before merging them all into one file to minimize the guesswork of which function is causing the error. Another solution is to write each function in its own header file and include all the files in one source file because the file names are accurate in the error messages.
 
 Defining two different `__usercall/__userpurge` functions with the same name but different arguments is undefined behavior. In most cases it will work but I recommend making separate functions rather than overloading one name.
 
