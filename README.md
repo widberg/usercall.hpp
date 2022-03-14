@@ -2,6 +2,10 @@
 
 MSVC Visual C++ Preprocessor macros for custom calling conventions on functions
 
+## Notice
+
+This project is soon to be obsoleted by [widberg/llvm-project-widberg-extensions](https://github.com/widberg/llvm-project-widberg-extensions). The new project will implement the constructs supported here as first-class language features for C/C++ in a fork of Clang/LLVM.
+
 ## Why?
 
 I originally had this idea while using [microsoft/Detours](https://github.com/microsoft/Detours) to inject a DLL into a running program and hook some functions. The problem with using the standard [Argument Passing and Naming Conventions](https://docs.microsoft.com/en-us/cpp/cpp/argument-passing-and-naming-conventions?view=msvc-160), i.e. __cdecl, __fastcall, __stdcall, etc., is that not every function in the exe used one of these predefined standards. After some research I discovered that this was due to the MSVC Visual C++ compiler optimizing register allocations to prevent stack thrashing. Long story short, I got fed up with writing a custom prologue and epilogue for every function so here we are `usercall.hpp`.
@@ -74,6 +78,8 @@ AF(void __usercall example2)()
 ## Documentation
 
 ## Notes
+
+MSVC CodeGen is unpredicatable at varrying optimization levels; this effect is magnified when using inline assembly as `usercall.hpp` does. I Recomend reading the pinned issue [Example snippet returns incorrect output when compiled without optimizations (x86) (#1)](https://github.com/widberg/usercall.hpp/issues/1) for more details. It is my recommendation that you compile all code using `usercall.hpp` with optimizations on. Furthermore, verify the disassembly to ensure MSVC is doing what you would expect.
 
 **NEVER** call a `__usercall/__userpurge` function with the standard C++ function call syntax. You **MUST** use a trampoline or an inline assembly block to call these functions from C++ if you don't want a mess of runtime corruption errors. `__usercall/__userpurge` functions can safely be passed to Detours. You only need to generate a trampoline for `__usercall/__userpurge` functions that you intend to call from C++.
 
